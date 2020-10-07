@@ -9,7 +9,7 @@ Install these packages through:
 ```{r}
 install.packages("remotes") #if remotes is not already installed
 remotes::install_github("lvaudor/banqueHydro")
-remotes::install_github("lvaudor/woody")
+remotes::install_github("lvaudor/woody", build_vignettes=TRUE)
 ```
 
 To learn more about this package please consult vignette running:

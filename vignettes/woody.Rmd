@@ -1,5 +1,5 @@
 ---
-title: "Using woody to run wood transport models"
+title: "woody"
 author: "Lise Vaudor"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -85,7 +85,7 @@ calc_rf_R2(Wdat_wt)
 
 # Get predictions on another dataset
 
-```{r, warning=FALSE, message=FALSE}
+```{r pred_on_other_data, warning=FALSE, message=FALSE}
 pathpred="../../woody_data/woody_data_predict/"
 mystation="V2942010"
 
