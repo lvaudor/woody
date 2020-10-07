@@ -18,5 +18,7 @@ To learn more about this package please consult
 
 and
 
+(https://github.com/lvaudor/woody/blob/master/inst/doc/schema_woody.jpg)
+
 
 
