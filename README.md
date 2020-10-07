@@ -11,3 +11,11 @@ install.packages("remotes") #if remotes is not already installed
 remotes::install_github("lvaudor/banqueHydro")
 remotes::install_github("lvaudor/woody")
 ```
+
+To learn more about this package please consult vignette running:
+
+```{r}
+vignette(package="woody")
+```
+
+
