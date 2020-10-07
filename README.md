@@ -9,13 +9,14 @@ Install these packages through:
 ```{r}
 install.packages("remotes") #if remotes is not already installed
 remotes::install_github("lvaudor/banqueHydro")
-remotes::install_github("lvaudor/woody", build_vignettes=TRUE)
+remotes::install_github("lvaudor/woody", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 ```
 
-To learn more about this package please consult vignette running:
+To learn more about this package please consult
 
-```{r}
-vignette(package="woody")
-```
+(https://github.com/lvaudor/woody/blob/master/vignettes/woody.Rmd)
+
+and
+
 
 

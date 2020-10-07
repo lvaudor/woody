@@ -14,6 +14,7 @@ get_Qdata_back=function(Qdata){
   Qdata_back=Qdata %>%
     dplyr::filter(Time==min(Time))
   while(Qmax_prior<Qmax){
+      Sys.sleep(30)
       tmin=min(Qdata_back$Time,na.rm=TRUE)
       t1=tmin-lubridate::years(1)
       t2=tmin

@@ -7,7 +7,6 @@ calc_rf_R2=function(data){
   R2=data %>%
     dplyr::mutate(CR=(Ypred-Y)^2,CT=(Y-mean(Y))^2) %>%
     dplyr::summarise(SCR=sum(CR),SCT=sum(CT)) %>%
-    dplyr::mutate(R2=1-SCR/SCT) %>%
-    dplyr::pull(R2)
+    dplyr::mutate(R2=1-SCR/SCT)
   return(R2)
 }
