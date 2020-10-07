@@ -2,7 +2,7 @@
 
 This package imports **wood log data** and all related **discharge data** to run a **random forest** regression that to predicts **wood flux** according to some **discharge history** variables. 
 
-You will have to install package `banqueHydro` to be able to use it.
+You will have to install package `banqueHydro`, too, to be able to use it.
 
 Install these packages through:
 
