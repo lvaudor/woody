@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 # Prepare data
 
 ```{r tree_mypath}
-mypath="../../woody_data/wood_data_train/"
+mypath="../../woody_data/woody_data_train/"
 mystation="V2942010"
 fs::dir_tree(mypath)
 ```
@@ -31,15 +31,15 @@ library(woody)
 Import all wood log files inside a file (1 directory per event)
 
 ```{r import_Wdata, message=FALSE, warning=FALSE}
-Wdat=woody::import_Wdata(mypath) 
+Wdat=import_Wdata(mypath) 
 ``` 
 
-Collect qtvar data from banquehydro, for the period covered by Wdata:
+Collect qtvar data from banquehydro, for the period covered by Wdata
 
 ```{r bh_get_qtvar}
-Qdat=woody::get_Qdata(station=mystation,
-                      Wdata=Wdat,
-                      extratime=1200)
+Qdat=get_Qdata(Wdata=Wdat,
+               station=mystation,
+               extratime=1200)
 ``` 
 
 
@@ -47,55 +47,61 @@ Qdat=woody::get_Qdata(station=mystation,
 Now complete Qdata with variables T_Q and S
 
 ```{r complete_Qdata}
-Qdatc=woody::complete_Qdata(Qdata=Qdat)
+Qdatc=complete_Qdata(Qdata=Qdat)
 ```
 
 Complete Wdat with discharge data (interpolating Qdat)
 
 ```{r complete_Wdata_with_Qdata}
-Wdatc=woody::complete_Wdata_with_Qdata(Wdata=Wdat,
-                                       Qdata=Qdatc)
+Wdatc=complete_Wdata_with_Qdata(Wdata=Wdat,
+                                Qdata=Qdatc)
 ```
 
 Then calculate Wdata_wt, where 1 row= 1 waiting time between two wood occurrences.
 
 ```{r Wdata_as_waiting_times}
-Wdat_wt=woody::Wdata_as_waiting_times(Wdatc)
-
+Wdat_wt=Wdata_as_waiting_times(Wdatc)
 ```
 
 # Run random forest
 
-```{r}
+```{r run_rf}
 myrf <- run_rf(Wdat_wt)
 myrf
 ```
 
-Predict on training data itself:
+Predict on training data itself
 
-```{r}
-Wdat_wt=woody::predict_rf(obj_rf=myrf,
-                          newdata=Wdat_wt)
+```{r pred_on_train}
+Wdat_wt=predict_rf(obj_rf=myrf,
+                   newdata=Wdat_wt)
 ```
 
 R2:
 
-```{r}
+```{r calc_R2_on_train}
 calc_rf_R2(Wdat_wt)
 ```
 
 # Get predictions on another dataset
 
 ```{r, warning=FALSE, message=FALSE}
-pathpred="../../woody_data_predict/"
+pathpred="../../woody_data/woody_data_predict/"
 mystation="V2942010"
-Wdat_pred=import_Wdata(pathpred)
-Qdat_pred=get_Qdata(station=mystation,
-                       Wdata=Wdat_pred)
-Qdat_pred=complete_Qdata(Qdat_pred)
-Wdat_pred=complete_Wdata_with_Qdata(Wdat_pred,Qdat_pred)
-Wdat_pred=Wdata_as_waiting_times(Wdat_pred)
-Wdat_pred=predict_rf(myrf,Wdat_pred)
-calc_rf_R2(Wdat_pred)
+
+Wdat_forpred=pathpred %>% 
+    import_Wdata()
+
+Qdat_forpred=Wdat_forpred %>%
+    get_Qdata(station=mystation) %>% 
+    complete_Qdata()
+
+Wdat_pred=Wdat_forpred %>%
+  complete_Wdata_with_Qdata(Qdat_forpred) %>% 
+  Wdata_as_waiting_times(Wdat_forpred) %>% 
+  predict_rf(myrf)
+
+Wdat_pred %>%
+  calc_rf_R2()
 ```
 
