@@ -4,12 +4,12 @@
 \alias{get_Qdata_back}
 \title{Collects Qdata back in time (enough to get previous, high enough peak in discharge)}
 \usage{
-get_Qdata_back(station, Qdata)
+get_Qdata_back(Qdata)
 }
 \arguments{
-\item{station}{gauging station}
-
 \item{Qdata}{discharge data for which to look back in time}
+
+\item{station}{gauging station}
 }
 \value{
 Qdata_back: discharge data back in time. Length of the period is enough to ensure calculation of T_Q for Qdata.

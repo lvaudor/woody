@@ -4,7 +4,7 @@
 \alias{predict_rf}
 \title{Runs model random forest object on new data}
 \usage{
-predict_rf(obj_rf, newdata)
+predict_rf(newdata, obj_rf)
 }
 \arguments{
 \item{obj_rf}{random forest object}

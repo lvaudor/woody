@@ -4,12 +4,12 @@
 \alias{get_Qdata}
 \title{Collects Qdata back in time (enough to get previous, high enough peak in discharge)}
 \usage{
-get_Qdata(station, Wdata, extratime = 1200)
+get_Qdata(Wdata, station, extratime = 1200)
 }
 \arguments{
-\item{station}{gauging station}
-
 \item{Wdata}{wood data for which to collect Qdata}
+
+\item{station}{gauging station}
 
 \item{extratime}{time (in seconds) before and after wood occurrences for which also to collect Qdata}
 }
