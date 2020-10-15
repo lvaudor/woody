@@ -4,13 +4,13 @@
 \alias{run_rf}
 \title{runs random forest model}
 \usage{
-run_rf(Wdata)
+run_rf(Wdatc_wt)
 }
 \arguments{
-\item{Wdata}{data with variables Q, rT_Q, S, Y}
+\item{Wdatc_wt}{data with wood data as waiting times and variables Q, rT_Q, S, Y}
 }
 \value{
-Wdata completed with column W (waiting time between two wood occurrences)
+random forest object
 }
 \description{
 runs random forest model
