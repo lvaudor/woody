@@ -7,7 +7,7 @@
 complete_Qdata(Qdata)
 }
 \value{
-Qdata completed with variables T_Q and S
+Qdata completed with variables T_Q, rT_Q and  S
 }
 \description{
 Completes Qdata with variables T_Q and S.
