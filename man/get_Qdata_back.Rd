@@ -17,7 +17,3 @@ Qdata_back: discharge data back in time. Length of the period is enough to ensur
 \description{
 Collects Qdata back in time (enough to get previous, high enough peak in discharge)
 }
-\examples{
-add(1, 1)
-add(10, 1)
-}
