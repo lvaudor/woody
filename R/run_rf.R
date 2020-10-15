@@ -1,11 +1,11 @@
 #' runs random forest model
-#' @param Wdata data with variables Q, rT_Q, S, Y
+#' @param Wdatc_wt data with wood data as waiting times and variables Q, rT_Q, S, Y
 #' @export
-#' @return Wdata completed with column W (waiting time between two wood occurrences)
+#' @return random forest object
 #' @examples
 
-run_rf=function(Wdata){
-  Wdata_rf <- Wdata %>%
+run_rf=function(Wdatc_wt){
+  Wdata_rf <- Wdatc_wt %>%
     dplyr::select(Q,
                   rT_Q,
                   S,
