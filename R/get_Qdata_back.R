@@ -2,9 +2,6 @@
 #' @param station gauging station
 #' @param Qdata discharge data for which to look back in time
 #' @return Qdata_back: discharge data back in time. Length of the period is enough to ensure calculation of T_Q for Qdata.
-#' @examples
-#' add(1, 1)
-#' add(10, 1)
 get_Qdata_back=function(Qdata){
   station=unique(Qdata$station)
   Qmax=Qdata%>%
@@ -16,10 +13,10 @@ get_Qdata_back=function(Qdata){
   while(Qmax_prior<Qmax){
       Sys.sleep(30)
       tmin=min(Qdata_back$Time,na.rm=TRUE)
-      t1=tmin-lubridate::years(1)
-      t2=tmin
-      print("Get one year of data before:")
-      print(paste(t1,t2,sep="  -  "))
+      t1=tmin-lubridate::years(1) %>%
+        format_time_for_qtvar()
+      t2=tmin %>%
+        format_time_for_qtvar()
       Qdata_back_oneyear=banqueHydro::bh_get_qtvar(station=station,
                                                    t1=t1,
                                                    t2=t2)
