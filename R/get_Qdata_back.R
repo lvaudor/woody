@@ -11,12 +11,12 @@ get_Qdata_back=function(Qdata){
   Qdata_back=Qdata %>%
     dplyr::filter(Time==min(Time))
   while(Qmax_prior<Qmax){
-      Sys.sleep(30)
       tmin=min(Qdata_back$Time,na.rm=TRUE)
-      t1=tmin-lubridate::years(1) %>%
-        format_time_for_qtvar()
+      t1=(tmin-lubridate::years(1)) %>%
+        banqueHydro::format_time_for_qtvar()
       t2=tmin %>%
-        format_time_for_qtvar()
+        banqueHydro::format_time_for_qtvar()
+      Sys.sleep(30)
       Qdata_back_oneyear=banqueHydro::bh_get_qtvar(station=station,
                                                    t1=t1,
                                                    t2=t2)
