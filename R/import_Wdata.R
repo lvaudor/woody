@@ -5,8 +5,8 @@
 #' @return Wdata
 #' @examples
 import_Wdata=function(path){
+  if(!stringr::str_detect(path,"\\/$")){path=stringr::str_c(path,"/")}
   event_dir=paste0(path,list.files(path))
-
   Wdata=tibble::tibble(event= paste0("event_",1:length(event_dir)),
                        event_dir=event_dir,
                        wood_file=event_dir %>%
