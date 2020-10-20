@@ -16,6 +16,6 @@ complete_Qdata=function(Qdata){
     dplyr::mutate(S=Q-approx(Qdata$Time,
                              Qdata$Q,
                              xout=Qdata$Time-60*5)$y) %>%
-    mutate(rT_Q=sqrt(T_Q))
+    dplyr::mutate(rT_Q=sqrt(T_Q))
   return(Qdata)
 }
