@@ -15,7 +15,9 @@ import_Wdata=function(path,site=path){
     dplyr::mutate(data=wood_file %>%
                     purrr::map(woody:::read_1_wood_log_file)) %>%
     tidyr::unnest(cols=c(data)) %>%
-    mutate(site=site)
-    #dplyr::mutate(Date=lubridate::round_date(Time,"day"))
+    mutate(site=site) %>%
+    mutate(Date = date(Time)) %>%
+    tidyr::unite("sitevent",site,event,remove=FALSE) %>%
+    select(site,event,sitevent,-wood_file,everything())
   return(Wdata)
 }
