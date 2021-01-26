@@ -14,6 +14,6 @@ complete_Qdata=function(qtvar,qnorm,site){
                              qtvar$Q,
                              xout=qtvar$Time-60*5)$y) %>%
     dplyr::mutate(rT_Q=sqrt(T_Q)) %>%
-    dplyr::select(site,Q,everything())
+    dplyr::select(site,station,Time,Q,everything())
   return(Qdata)
 }

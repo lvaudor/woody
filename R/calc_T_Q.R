@@ -2,7 +2,6 @@
 #'
 #' @param time_obs a time of observation in Qdata
 #' @param Qdata Qdata
-#' @param Qdata_back Qdata before period covered by Qdata
 #' @return the value of T_Q for the observation at time `time_obs` in `Qdata`
 #' @examples
 calc_T_Q=function(time_obs,Qdata){
