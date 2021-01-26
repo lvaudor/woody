@@ -5,8 +5,8 @@
 #' @param Qdata_back Qdata before period covered by Qdata
 #' @return the value of T_Q for the observation at time `time_obs` in `Qdata`
 #' @examples
-calc_T_Q=function(time_obs,Qdata,Qdata_back){
-  Qdatac=dplyr::bind_rows(Qdata_back,Qdata) %>%
+calc_T_Q=function(time_obs,Qdata){
+  Qdatac=Qdata %>%
     unique() %>%
     dplyr::arrange(Time) %>%
     dplyr::mutate(index=1:dplyr::n())
