@@ -6,7 +6,7 @@
 complete_Qdata=function(qtvar,qnorm,site){
   Qdata=qtvar %>%
     dplyr::mutate(Q=Q/qnorm,
-                  site=rep(NA,n())) %>%
+                  site=rep(site,n())) %>%
     dplyr::mutate(T_Q=purrr::map_dbl(Time,
                                      .f=calc_T_Q,
                                      Qdata=qtvar)) %>%
