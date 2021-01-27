@@ -4,7 +4,6 @@
 #' @return Vdata
 #' @examples
 import_Vdata=function(path,site=path){
-  if(!stringr::str_detect(path,"\\/$")){path=stringr::str_c(path,"/")}
   Vdata=readr::read_delim(path,";",escape_double=FALSE,trim_ws=TRUE) %>%
     mutate(Date=lubridate::ymd(Date))
   return(Vdata)
