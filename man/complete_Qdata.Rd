@@ -2,13 +2,13 @@
 % Please edit documentation in R/complete_Qdata.R
 \name{complete_Qdata}
 \alias{complete_Qdata}
-\title{Completes Qdata with variables T_Q and S.}
+\title{Completes qtvar with variables T_Q and S. => Qdata}
 \usage{
-complete_Qdata(Qdata)
+complete_Qdata(qtvar, qnorm, site)
 }
 \value{
 Qdata completed with variables T_Q, rT_Q and  S
 }
 \description{
-Completes Qdata with variables T_Q and S.
+Completes qtvar with variables T_Q and S. => Qdata
 }

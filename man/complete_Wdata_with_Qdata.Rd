@@ -4,10 +4,10 @@
 \alias{complete_Wdata_with_Qdata}
 \title{Interpolates Qdata to add discharge variables to Wdata}
 \usage{
-complete_Wdata_with_Qdata(Wdata, Qdata)
+complete_Wdata_with_Qdata(Wdata, Qdata, newvars = c("Q", "T_Q", "S", "rT_Q"))
 }
 \value{
-Wdata completed with variables Q, T_Q, and S
+Wdata completed with variables Q, T_Q, and S and rT_Q
 }
 \description{
 Interpolates Qdata to add discharge variables to Wdata
