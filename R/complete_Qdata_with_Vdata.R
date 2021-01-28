@@ -25,7 +25,9 @@ complete_Qdata_with_Vdata=function(Qdata,Vdata){
     res=Vsub %>%
       dplyr::summarise(Vmax=max(FFM),
                        Vsum=mean(FFM))%>%
-      dplyr::mutate(Vsum=Vsum*data$T_Q)
+      dplyr::mutate(Vsum=Vsum*data$T_Q) %>%
+      dplyr::mutate(Vmax=case_when(T_Q>1~Vmax,
+                                   T_Q<=1~0))
     return(res)
   }
   result=result %>%
