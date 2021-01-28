@@ -42,7 +42,9 @@ complete_Qdata=function(qtvar,qnorm,site){
                                  qtvarc$Q,
                                  xout=T5minbef)$y) %>%
         dplyr::mutate(rT_Q=sqrt(T_Q)) %>%
-        dplyr::select(site,station,Time,Q,T_Q,S,rT_Q)
+        dplyr::select(site,station,Time,Q,T_Q,S,rT_Q) %>%
+        dplyr::ungroup() %>%
+        dplyr::select(-id)
   return(result)
 }
 
