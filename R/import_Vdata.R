@@ -5,6 +5,7 @@
 #' @examples
 import_Vdata=function(path,site=path){
   Vdata=readr::read_delim(path,";",escape_double=FALSE,trim_ws=TRUE) %>%
-    mutate(Date=lubridate::ymd(Date))
+    dplyr::mutate(Date=lubridate::ymd(Date)) %>%
+    dplyr::mutate(FFM=tidyr::replace_na(FFM,0))
   return(Vdata)
 }
