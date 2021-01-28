@@ -3,6 +3,7 @@
 export("%>%")
 export(Wdata_as_waiting_times)
 export(calc_rf_R2)
+export(calc_rf_perf)
 export(complete_Qdata)
 export(complete_Qdata_with_Vdata)
 export(complete_Wdata_with_Qdata)
