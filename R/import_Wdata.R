@@ -10,15 +10,15 @@ import_Wdata=function(path,site=path){
         Wdata=tibble::tibble(event= paste0("event_",1:length(event_dir)),
                              event_dir=event_dir,
                              wood_file=event_dir %>%
-                               purrr::map(list.files, full.names=TRUE)) %>%
+                             purrr::map(list.files, full.names=TRUE)) %>%
         tidyr::unnest(cols=c(wood_file)) %>%
         dplyr::mutate(data=wood_file %>%
                         purrr::map(woody:::read_1_wood_log_file)) %>%
-       tidyr::unnest(cols=c(data)) %>%
-       select(-event_dir,-wood_file) %>%
-       mutate(site=site) %>%
-       mutate(`Date` = date(Time)) %>%
-       tidyr::unite("sitevent",site,event,remove=FALSE) %>%
-       select(site,event,sitevent,everything())
+        tidyr::unnest(cols=c(data)) %>%
+        select(-event_dir,-wood_file) %>%
+        mutate(site=site) %>%
+        mutate(`Date` = date(Time)) %>%
+        tidyr::unite("sitevent",site,event,remove=FALSE) %>%
+        select(site,event,sitevent,everything())
   return(Wdata)
 }
