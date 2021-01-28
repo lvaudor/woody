@@ -4,10 +4,12 @@
 \alias{run_rf}
 \title{runs random forest model}
 \usage{
-run_rf(Wdatc_wt)
+run_rf(Wdatcwt, pred_vars = c("Q", "S", "rT_Q"))
 }
 \arguments{
-\item{Wdatc_wt}{data with wood data as waiting times and variables Q, rT_Q, S, Y}
+\item{pred_vars}{predictor variables by default c("Q","rT_Q","S")}
+
+\item{Wdatc_wt}{data with wood data as waiting times}
 }
 \value{
 random forest object
