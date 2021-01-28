@@ -8,16 +8,18 @@ import_Wdata=function(path,site=path){
     if(!stringr::str_detect(path,"\\/$")){path=stringr::str_c(path,"/")}
     event_dir=paste0(path,list.files(path))
         Wdata=tibble::tibble(event= paste0("event_",1:length(event_dir)),
-                             event_dir=event_dir,
-                             wood_file=event_dir %>%
-                             purrr::map(list.files, full.names=TRUE)) %>%
+                            event_dir=event_dir,
+                            wood_file=event_dir %>%
+                            purrr::map(list.files, full.names=TRUE)) %>%
         tidyr::unnest(cols=c(wood_file)) %>%
         dplyr::mutate(data=wood_file %>%
                         purrr::map(woody:::read_1_wood_log_file)) %>%
         tidyr::unnest(cols=c(data)) %>%
         select(-event_dir,-wood_file) %>%
-        mutate(site=site) %>%
-        mutate(`Date` = date(Time)) %>%
+        dplyr::mutate(site=site) %>%
+        dplyr::mutate(maDate = date(Time)) %>%
+        dplyr::mutate(Date=maDate) %>%
+        dplyr::select(-maDate) %>%
         tidyr::unite("sitevent",site,event,remove=FALSE) %>%
         select(site,event,sitevent,everything())
   return(Wdata)
