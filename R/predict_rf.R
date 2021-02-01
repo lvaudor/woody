@@ -8,6 +8,7 @@
 
 predict_rf=function(newdata,obj_rf){
   newdata=newdata %>%
-    dplyr::mutate(Ypred=predict(obj_rf,newdata))
+    dplyr::mutate(Ypred=predict(obj_rf,newdata)) %>%
+    dplyr::mutate(Npred=exp(Ypred))
   return(newdata)
 }
