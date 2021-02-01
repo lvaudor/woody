@@ -13,7 +13,9 @@ summarise_hourly=function(data, type="Wdatc"){
       group_by(site,event,sitevent,Date,Time)
     data=data %>%
       mutate(N=dplyr::n()) %>%
-      mutate(Y=log(N))
+      mutate(Y=log(N)) %>%
+      filter(hour(Time)>8,
+             hour(Time)<16)
   }
   data=mutate(data,
               Q=mean(Q),
@@ -28,5 +30,5 @@ summarise_hourly=function(data, type="Wdatc"){
   data=data %>%
     unique() %>%
     ungroup()
-  return(Wdath)
+  return(data)
 }
