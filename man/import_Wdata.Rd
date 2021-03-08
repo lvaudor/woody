@@ -8,6 +8,8 @@ import_Wdata(path, site = path)
 }
 \arguments{
 \item{path}{the path towards the events directory}
+
+\item{site}{the name of the site considered}
 }
 \value{
 Wdata

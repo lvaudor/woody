@@ -4,7 +4,7 @@
 \alias{summarise_hourly}
 \title{summarise data hourly}
 \usage{
-summarise_hourly(data, type = "Wdatc")
+summarise_hourly(data, type = "Wdatc", Adata = "notprovided")
 }
 \arguments{
 \item{type}{of data either "Wdatc" or something else e.g. "Ddata"}
