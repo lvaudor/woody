@@ -35,7 +35,7 @@ complete_Qdata_with_Vdata=function(Qdata,Vdata){
     tidyr::unnest(cols=c(data,QVdata)) %>%
     dplyr::select(-Date,-Date_bef) %>%
     ungroup() %>%
-    select(-id)
+    dplyr::select(-id)
   return(result)
 }
 
