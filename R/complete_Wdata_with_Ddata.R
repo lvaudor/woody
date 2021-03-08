@@ -4,7 +4,7 @@
 #' @param Ddata descriptive data
 #' @return Wdata completed with variables Q, T_Q, and S and rT_Q
 #' @examples
-complete_Wdata_with_Qdata=function(Wdata,Qdata, newvars=c("Q","T_Q","S","rT_Q")){
+complete_Wdata_with_Ddata=function(Wdata,Qdata, newvars=c("Q","T_Q","S","rT_Q")){
   {
     result=Wdata
     for(var in newvars){
