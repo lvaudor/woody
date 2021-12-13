@@ -1,9 +1,8 @@
 #' Completes Qdata with variables Vmax,Vsum. => QVdata
 #' @export
-#' @param Qdata
-#' @param Vdata
+#' @param Qdata discharge data
+#' @param Vdata wind data
 #' @return QVdata completed with variables Vmax,Vsum
-#' @examples
 complete_Qdata_with_Vdata=function(Qdata,Vdata){
   result=Qdata %>%
     dplyr::mutate(Date=lubridate::date(Time)) %>%
