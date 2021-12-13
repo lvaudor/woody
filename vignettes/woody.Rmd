@@ -1,5 +1,5 @@
 ---
-title: "woody"
+title: "woody: predict wood occurrence data based on discharge data"
 author: "Lise Vaudor"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -44,12 +44,15 @@ Qdat=get_Qdata(Wdata=Wdat,
 Qdat %>% 
   dplyr::pull(Time) %>% 
   range()
+
+head(Qdat)
 ```
 
 Now **complete Qdata** with **variables T_Q and S**
 
 ```{r complete_Qdata}
 Qdatc=complete_Qdata(qtvar=Qdat,site="site1")
+head(Qdatc)
 ```
 
 Complete Wdat with discharge data (interpolating Qdat)
@@ -57,6 +60,7 @@ Complete Wdat with discharge data (interpolating Qdat)
 ```{r complete_Wdata_with_Qdata}
 Wdatc=complete_Wdata_with_Qdata(Wdata=Wdat,
                                 Qdata=Qdatc)
+head(Wdatc)
 ```
 
 Then calculate Wdata_wt, where 1 row= 1 waiting time between two wood occurrences.
@@ -89,11 +93,10 @@ calc_rf_R2(Wdat_wt)
 
 ```{r pred_on_other_data, warning=FALSE, message=FALSE}
 pathpred="../data-raw/mem_data/woody_data_predict/"
-mystation="V2942010"
 
 Wdat_forpred=import_Wdata(pathpred)
 
-Qdat_forpred= get_Qdata(Wdat_forpred, station=mystation) %>% 
+Qdat_forpred= get_Qdata(Wdat_forpred, station="V2942010") %>% 
     complete_Qdata()
 
 Wdat_pred=Wdat_forpred %>%
