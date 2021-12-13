@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 # Prepare data
 
 ```{r tree_mypath}
-mypath="../../woody_data/woody_data_train/"
+mypath="../data-raw/mem_data/woody_data_train/"
 mystation="V2942010"
 fs::dir_tree(mypath)
 ```
@@ -34,20 +34,22 @@ Import all wood log files inside a file (1 directory per event)
 Wdat=import_Wdata(mypath) 
 ``` 
 
-Collect qtvar data from banquehydro, for the period covered by Wdata
+Collect **qtvar data** from banquehydro, for the **period covered by Wdata**
 
 ```{r bh_get_qtvar}
 Qdat=get_Qdata(Wdata=Wdat,
                station=mystation,
-               extratime=1200)
-``` 
+               back_in_time=TRUE)
 
+Qdat %>% 
+  dplyr::pull(Time) %>% 
+  range()
+```
 
-
-Now complete Qdata with variables T_Q and S
+Now **complete Qdata** with **variables T_Q and S**
 
 ```{r complete_Qdata}
-Qdatc=complete_Qdata(Qdata=Qdat)
+Qdatc=complete_Qdata(qtvar=Qdat,site="site1")
 ```
 
 Complete Wdat with discharge data (interpolating Qdat)
@@ -86,22 +88,19 @@ calc_rf_R2(Wdat_wt)
 # Get predictions on another dataset
 
 ```{r pred_on_other_data, warning=FALSE, message=FALSE}
-pathpred="../../woody_data/woody_data_predict/"
+pathpred="../data-raw/mem_data/woody_data_predict/"
 mystation="V2942010"
 
-Wdat_forpred=pathpred %>% 
-    import_Wdata()
+Wdat_forpred=import_Wdata(pathpred)
 
-Qdat_forpred=Wdat_forpred %>%
-    get_Qdata(station=mystation) %>% 
+Qdat_forpred= get_Qdata(Wdat_forpred, station=mystation) %>% 
     complete_Qdata()
 
 Wdat_pred=Wdat_forpred %>%
   complete_Wdata_with_Qdata(Qdat_forpred) %>% 
-  Wdata_as_waiting_times(Wdat_forpred) %>% 
-  predict_rf(myrf)
+  Wdata_as_waiting_times() 
 
-Wdat_pred %>%
-  calc_rf_R2()
+pred_rf=predict_rf(Wdat_pred,myrf)
+calc_rf_R2(pred_rf)
 ```
 
