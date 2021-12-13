@@ -26,7 +26,8 @@ get_Qdata_back=function(Qdata){
         dplyr::summarise(Qmax=max(Q,na.rm=T)) %>%
         dplyr::pull(Qmax)
   }
-  Qdata_back=Qdata_back %>%
+  Qdata_back=dplyr::bind_rows(Qdata_back,
+                              Qdata) %>%
     unique()
   return(Qdata_back)
 }
