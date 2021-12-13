@@ -3,7 +3,6 @@
 #' @param pred_vars predictor variables by default c("Q","rT_Q","S")
 #' @export
 #' @return random forest object
-#' @examples
 run_rf=function(Wdatcwt,pred_vars=c("Q","S","rT_Q")){
   all_vars=c(pred_vars,"Y")
   Wdata_rf <- Wdatcwt %>%

@@ -1,35 +1,49 @@
 #' Completes qtvar with variables T_Q and S. => Qdata
-#' @export
-#' @param qtvar
+#' @param qtvar the discharge dataset (with varying time resolution).
+#' @param qnorm standard value of discharge used to normalise variable Q. Defaults to 1 (no normalisation).
+#' @param site the site name (defaults to "site")
 #' @return Qdata completed with variables T_Q, rT_Q and  S
-#' @examples
-complete_Qdata=function(qtvar,qnorm,site){
+#' @export
+complete_Qdata=function(qtvar,qnorm=1, site="site"){
+      # qtvarc= qtvar %>%
+      # remove duplicates
+      # arrange by Time
+      # number lines with variable index
       qtvarc=qtvar %>%
         unique() %>%
         dplyr::arrange(Time) %>%
         dplyr::mutate(index=1:dplyr::n(),
                       Q=Q/qnorm,
-                      site=rep(site,n()))
+                      site=rep(site,))
+      # Build individual datasets
+      # corresponding to each Time
       result= qtvarc%>%
-        mutate(id=index) %>%
-        group_by(id) %>%
+        dplyr::mutate(id=index) %>%
+        dplyr::group_by(id) %>%
         tidyr::nest(data=c(Time,Q,index))
 
+      # For such an individal dataset,
+      # function f_lasttime calculates
+      # last time such a discharge occurred
       f_lasttime=function(data){
         dataslice=qtvarc %>%
-          filter(Q>=data$Q,
-                 index<data$index)
+          dplyr::filter(Q>=data$Q,
+                        index<data$index)
         if(nrow(dataslice)==0){return(NA_real_)}
         indexl=dataslice %>%
-          summarise(index=max(index)) %>%
-          pull(index)
+          dplyr::summarise(index=max(index)) %>%
+          dplyr::pull(index)
         if(indexl==data$index-1){return(data$Time)}
         datatarget=qtvarc %>%
-          filter(index %in% c(indexl,indexl+1)) %>%
-          select(Time,Q)
+          dplyr::filter(index %in% c(indexl,indexl+1)) %>%
+          dplyr::select(Time,Q)
         lasttime=approx(datatarget$Q,datatarget$Time,xout=data$Q)$y
         return(lasttime)
       }
+      # Apply this function to all individual datasets
+      # then unnest them
+      # and calculate time difference T_Q (in days)
+      # as well as Slope of discharge in the last 5 minutes, S
       result=result %>%
         dplyr::mutate(lasttime=purrr::map_dbl(data,.f=f_lasttime))%>%
         dplyr::mutate(lasttime=as.POSIXct(lasttime,
@@ -42,7 +56,7 @@ complete_Qdata=function(qtvar,qnorm,site){
                                  qtvarc$Q,
                                  xout=T5minbef)$y) %>%
         dplyr::mutate(rT_Q=sqrt(T_Q)) %>%
-        dplyr::select(site,station,Time,Q,T_Q,S,rT_Q) %>%
+        dplyr::select(site,station,Time,Q,T_Q,S,rT_Q,id) %>%
         dplyr::ungroup() %>%
         dplyr::select(-id)
   return(result)

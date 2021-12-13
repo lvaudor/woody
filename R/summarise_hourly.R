@@ -1,9 +1,8 @@
 #' summarise data hourly
-#' @param data
+#' @param data data to summarise
 #' @param type of data either "Wdatc" or something else e.g. "Ddata"
 #' @export
 #' @return random forest object
-#' @examples
 summarise_hourly=function(data, type="Wdatc", Adata="notprovided"){
   data=data %>%
     mutate(Time = floor_date(Time, "hour")) %>%

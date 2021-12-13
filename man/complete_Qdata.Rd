@@ -4,7 +4,14 @@
 \alias{complete_Qdata}
 \title{Completes qtvar with variables T_Q and S. => Qdata}
 \usage{
-complete_Qdata(qtvar, qnorm, site)
+complete_Qdata(qtvar, qnorm = 1, site = "site")
+}
+\arguments{
+\item{qtvar}{the discharge dataset (with varying time resolution).}
+
+\item{qnorm}{standard value of discharge used to normalise variable Q. Defaults to 1 (no normalisation).}
+
+\item{site}{the site name (defaults to "site")}
 }
 \value{
 Qdata completed with variables T_Q, rT_Q and  S

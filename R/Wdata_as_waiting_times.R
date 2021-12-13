@@ -1,9 +1,8 @@
 #' Transform Wdata (1 line= 1 occurrence of wood) into Wdata_wt (1 line= time between two occurrences of wood)
-#' @param Wdata
+#' @param Wdata wood data
 #' @param maxWait the maximum waiting time in seconds (defaults to 1200 seconds i.e. 20 minutes)
 #' @export
 #' @return Wdata completed with column W (waiting time between two wood occurrences)
-#' @examples
 
 Wdata_as_waiting_times=function(Wdata, maxWait=1200){
   Wdata_wt=Wdata %>%

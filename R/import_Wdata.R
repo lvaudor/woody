@@ -4,7 +4,7 @@
 #' @importFrom magrittr %>%
 #' @export
 #' @return Wdata
-#' @example Wdata=import_Wdata("data/wood_data_Allier", site="Allier")
+# Wdata=import_Wdata("data-raw/wood_data_Allier", site="Allier")
 import_Wdata=function(path,site=path){
     if(!stringr::str_detect(path,"\\/$")){path=stringr::str_c(path,"/")}
     event_dir=paste0(path,list.files(path))

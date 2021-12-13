@@ -7,6 +7,8 @@
 summarise_hourly(data, type = "Wdatc", Adata = "notprovided")
 }
 \arguments{
+\item{data}{data to summarise}
+
 \item{type}{of data either "Wdatc" or something else e.g. "Ddata"}
 }
 \value{

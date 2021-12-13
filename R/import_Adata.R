@@ -4,14 +4,14 @@
 #' @importFrom magrittr %>%
 #' @export
 #' @return Adata
-#' @example Adata=import_Adata("data/annot_times_Ain.csv",site="Ain")
+# Adata=import_Adata("data-raw/annot_times_Ain.csv",site="Ain")
 import_Adata=function(path, site){
   Adata=readr::read_csv(path) %>%
     dplyr::mutate(start=lubridate::dmy_hms(start),
                   end=lubridate::dmy_hms(end))
 
   cut_obs_times=function(start,end){
-    Time=floor_date(start, "hour")
+    Time=floor_date(start,"hour")
     Timend=floor_date(end,"hour")
     if(Time!=Timend){
       seqtimes=seq(from=Time+hours(1),to=Timend,by="hours")

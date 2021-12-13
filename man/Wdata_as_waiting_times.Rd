@@ -7,6 +7,8 @@
 Wdata_as_waiting_times(Wdata, maxWait = 1200)
 }
 \arguments{
+\item{Wdata}{wood data}
+
 \item{maxWait}{the maximum waiting time in seconds (defaults to 1200 seconds i.e. 20 minutes)}
 }
 \value{
