@@ -6,6 +6,11 @@
 \usage{
 complete_Qdata_with_Vdata(Qdata, Vdata)
 }
+\arguments{
+\item{Qdata}{discharge data}
+
+\item{Vdata}{wind data}
+}
 \value{
 QVdata completed with variables Vmax,Vsum
 }
