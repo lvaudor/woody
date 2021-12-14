@@ -1,5 +1,4 @@
 #' Reads one wood log file. To be used from import_Wdata()
-#'
 #' @param file the path to one log file
 #' @return the data from file
 read_1_wood_log_file=function(file){
