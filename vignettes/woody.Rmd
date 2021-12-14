@@ -31,7 +31,7 @@ library(woody)
 Import all wood log files inside a file (1 directory per event)
 
 ```{r import_Wdata, message=FALSE, warning=FALSE}
-Wdat=import_Wdata(mypath) 
+Wdat=import_Wdata(mypath,site="training") 
 ``` 
 
 Collect **qtvar data** from banquehydro, for the **period covered by Wdata**
