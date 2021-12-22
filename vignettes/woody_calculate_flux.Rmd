@@ -1,0 +1,240 @@
+---
+title: "woody: calculate flux"
+date: "13/12/2021"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{woody: calculate flux}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r attach_woody, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE)
+library(woody)
+library(tidyverse)
+library(DiagrammeR)
+```
+
+<!-- # Principles -->
+
+<!-- In the first part of this process we have been estimating $Y$ which corresponds to an **instantaneous logflux**. -->
+
+<!-- To transform this estimate into an actual **hourly flux** one has to be cautious as to which **sampling resolution** to use. Indeed, in Wdata, the sampling is particularly important when flux is important (since each observation corresponds to a piece of wood). Thus predicting an hourly flux without overestimating it requires to rely on Qdata sampled at regular, small time intervals (e.g. a minute) -->
+
+
+<!-- ```{r} -->
+<!-- tib_WpQp=readRDS("../data-raw/results/tib_WpQp.RDS") -->
+<!-- myrf=readRDS("../data-raw/results/rf.RDS") -->
+<!-- tib_WpQi=tib_WpQp %>%  -->
+<!--   mutate(Qdata=purrr::map(.x=Qdata, ~interp_Qdata(.x)))%>% -->
+<!--   mutate(Qdata=purrr::map(.x=Qdata,~mutate(.x,site=factor(site,levels=c("Ain","Allier"))))) %>%  -->
+<!--   mutate(Qdata=purrr::map(.x=Qdata %>% na.omit(),~predict_rf(newdata=.x,obj_rf=myrf))) -->
+
+<!-- ``` -->
+
+
+<!-- ```{r tib_WhQh} -->
+<!-- tib_WhQh=tib_WpQi %>% -->
+<!--   mutate(apath=paste0("../data-raw/annot_times_",site,".csv")) %>%  -->
+<!--   mutate(Adata=purrr::map2(.x=apath,.y=site, -->
+<!--                            ~import_Adata(path=.x,site=.y))) %>%  -->
+<!--   mutate(Wdata=purrr::map2(.x=Wdata,.y=Adata, -->
+<!--                            ~summarise_period(data=.x,type="Wdata",period="hour",Adata=.y))) %>%  -->
+<!--   mutate(Qdata=purrr::map(.x=Qdata,~summarise_period(data=.x,type="Qdata",period="hour")) -->
+<!--   ) -->
+
+<!-- ``` -->
+
+<!-- ```{r, fig.height=4} -->
+<!-- Wh=tib_WhQh %>%  -->
+<!--   select(Wdata) %>%  -->
+<!--   tidyr::unnest(Wdata,.name_repair="minimal") -->
+<!-- Qh=tib_WhQh %>%  -->
+<!--   select(Qdata) %>%  -->
+<!--   tidyr::unnest(Qdata, .name_repair="minimal") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- Qhr=Qh %>% right_join(Wh %>% select(site,event,sitevent,Time,Nobsc)) -->
+<!-- ``` -->
+
+
+
+<!-- ```{r,fig.height=12} -->
+<!-- ggplot(data=Wh,aes(x=Time,y=Nobsc))+ -->
+<!--   geom_line(col="blue")+ -->
+<!--   geom_point(col="blue")+ -->
+<!--   geom_line(data=Qhr, aes(x=Time, y=Npredanc),col="red")+ -->
+<!--   geom_point(data=Qhr, aes(x=Time, y=Npredanc),col="red")+  -->
+<!--   geom_line(data=Qhr, aes(x=Time, y=Npred),col="green")+ -->
+<!--   geom_point(data=Qhr, aes(x=Time, y=Npred),col="green")+ -->
+<!--   facet_wrap(vars(sitevent), scales="free_x",ncol=1)+ -->
+<!--   scale_y_log10() -->
+<!-- ``` -->
+
+
+
+<!-- ## Data to predict (Qdat complete, all days and nights) -->
+
+<!-- Qdatc_hl : Qdat **c**omplete, **h**ourly summary, **l**ong time -->
+
+<!-- ```{r Qdatc_hl} -->
+<!-- Qdatc_hl=Qdatc %>% -->
+<!--   summarise_period(type="Qdata", period=3600) %>% -->
+<!--   left_join(select(Esummary, sitevent,site,event,Date), -->
+<!--             by=c("Date","site","event","sitevent"))  -->
+
+<!-- truc=Wdat_h %>%  -->
+<!--   left_join(Qdatc_hl,by=c("site","event","sitevent","Time","Date")) -->
+<!-- ```  -->
+
+<!-- ## Prediction : pred_hl -->
+
+<!-- prediction **h**ourly, **l**ong time -->
+
+<!-- ```{r pred_lc} -->
+<!-- pred_hl=predict_rf(obj_rf=myrf, -->
+<!--                    newdata=Qdatc_hl) %>%  -->
+<!--       mutate(based_on=mysite) -->
+<!-- readr::write_csv2(pred_hl, -->
+<!--                   file="data-raw/results/pred_hl.csv") -->
+<!-- pred_hl=pred_hl %>%  -->
+<!--   mutate(Wpred=3600/exp(Ypred)) %>% -->
+<!--   mutate(Wpred=Wpred/log(2)) %>% -->
+<!--   mutate(Npred=3600/Wpred, -->
+<!--          Ndiff=Npred-N)  -->
+<!-- ``` -->
+
+<!-- ## Prediction performance -->
+
+<!-- ```{r} -->
+<!-- tib_R2=pred_hl %>% -->
+<!--   na.omit() %>%  -->
+<!--   group_by(site) %>%  -->
+<!--   tidyr::nest() %>%  -->
+<!--   mutate(R2=purrr::map(data,calc_rf_R2)) %>%  -->
+<!--   select(site,R2) %>%  -->
+<!--   unnest(cols=c(R2)) %>%  -->
+<!--   ungroup() -->
+<!-- tib_R2 -->
+
+<!-- ggplot(pred_hl, aes(x=N, y=Npred))+ -->
+<!--   geom_point()+ -->
+<!--   facet_grid(cols=vars(site), -->
+<!--              labeller = labeller(.rows = label_both, .cols = label_both))+ -->
+<!--   scale_x_log10()+scale_y_log10()+ -->
+<!--   geom_abline(intercept=0,slope=1) -->
+
+<!-- ``` -->
+
+
+<!-- - red: prediction based on site itself -->
+<!-- - red, dashed : prediction based on other site -->
+<!-- - brown: observed -->
+
+<!-- ```{r plots_hourly_summaries, fig.width=8, fig.height=14} -->
+<!-- pred_hl_plot=pred_hl %>% filter(!is.na(Y)) -->
+<!-- p=ggplot(Esummary %>% -->
+<!--            filter(site==mysite), -->
+<!--          aes(x=dawn,y=1))+ -->
+<!--  geom_rect(aes(xmin=dusk,xmax=dawn,ymin=0,ymax=+Inf), -->
+<!--             fill="#495272",alpha=0.1)+ -->
+<!--  geom_step(data=pred_hl_plot %>% filter(site==based_on), -->
+<!--            aes(x=Time, y=exp(Ypred)), -->
+<!--            color="red")+ -->
+<!--  geom_step(data=pred_hl_plot %>% filter(site!=based_on), -->
+<!--        aes(x=Time, y=exp(Ypred)), -->
+<!--        color="red",linetype=2)+ -->
+<!--  geom_point(data=pred_hl_plot %>% filter(site==based_on), -->
+<!--            aes(x=Time, y=exp(Y)), -->
+<!--            color="brown")+ -->
+<!--  facet_wrap(facets=vars(sitevent),ncol=1, scales="free_x")+ -->
+<!--  scale_y_log10()+ -->
+<!--  scale_x_datetime(date_labels =  "%d", date_breaks="1 day") + -->
+<!--   ggtitle(mysite) -->
+<!-- plot(p)   -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- ggplot(pred_hl,aes(x=event,y=Ndiff))+ -->
+<!--   geom_boxplot()+ -->
+<!--   facet_grid(cols=vars(site), -->
+<!--              labeller = labeller(.rows = label_both, .cols = label_both), -->
+<!--              scales="free_x")+ -->
+<!--   scale_y_continuous(limits=c(-1000,1000)) -->
+<!-- ``` -->
+
+<!-- ```{r,fig.height=15,fig.width=12} -->
+
+<!-- dd=Qdatc%>%  -->
+<!--   filter(!is.na(event)) %>%  -->
+<!--   group_by(site,event,sitevent) %>% -->
+<!--   summarise(timemin=min(Time), -->
+<!--             timemax=max(Time), -->
+<!--             tbef=max(T_Q), -->
+<!--             .groups="drop") %>%  -->
+<!--   mutate(start_period=timemin-lubridate::days(round(tbef))-5, -->
+<!--          end_period=timemax+lubridate::days(7)) -->
+
+<!-- get_data=function(ddline){ -->
+<!--   Qdatc %>%  -->
+<!--     filter(site==ddline$site) %>%  -->
+<!--     select(-site,-event,-sitevent) %>%  -->
+<!--     filter(Time>ddline$start_period, -->
+<!--            Time<ddline$end_period) -->
+<!-- } -->
+<!-- ddd=dd %>% -->
+<!--   mutate(id=1:n()) %>%  -->
+<!--   group_by(id) %>%  -->
+<!--   nest() %>%  -->
+<!--   mutate(newdata=purrr::map(data,get_data)) %>%  -->
+<!--   unnest(newdata) %>%  -->
+<!--   unnest(data) %>%  -->
+<!--   select(-id,-start_period,-end_period) %>%  -->
+<!--   ungroup()  -->
+
+<!-- pred_hld=pred_hl %>%  -->
+<!--   mutate(timemin=lubridate::floor_date(Time,"day"), -->
+<!--          timemax=lubridate::ceiling_date(Time,"day")) %>%  -->
+<!--   group_by(site,event,sitevent,Date,timemin,timemax) %>% -->
+<!--   summarise(Ndiff=sum(Ndiff,na.rm=TRUE)) %>%  -->
+<!--   mutate(est=Ndiff) -->
+
+
+<!-- ggplot(ddd)+ -->
+<!--     geom_rect(data=pred_hld, -->
+<!--             aes(xmin=timemin,xmax=timemax,ymin=0,ymax=+Inf,fill=est))+ -->
+<!--   geom_line(data=ddd, -->
+<!--             aes(x=Time,y=Q), -->
+<!--             col="blue")+ -->
+
+<!--   facet_wrap(vars(sitevent),nrow=11,scales="free_x")+ -->
+<!--   scale_fill_gradient2(low="red",mid="white",high="green",midpoint=0) -->
+<!-- ``` -->
+
+
+
+```{r Wdat_h}
+tib_WpQc_h=tib_WpQc %>%
+  mutate(apath=paste0("../data-raw/annot_times_",site,".csv")) %>% 
+  mutate(Adata=purrr::map2(.x=apath,.y=site,
+                           ~import_Adata(path=.x,site=.y))) %>% 
+  mutate(Wdata=purrr::map2(.x=Wdata,.y=Adata,
+                           ~summarise_period(data=.x,type="Wdata",period="hour",Adata=.y)))
+
+```
+
+```{r, fig.height=4}
+Wdatah=tib_WpQc_h %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(cols=c(Wdata),names_repair="minimal")
+```
+
+```{r,fig.height=12}
+ggplot(data=Wdatah,aes(x=Time,y=Nobsc))+
+  geom_point()+
+  geom_line(col="blue")+
+  facet_wrap(vars(sitevent), scales="free_x",ncol=1)+
+  scale_y_log10()
+```

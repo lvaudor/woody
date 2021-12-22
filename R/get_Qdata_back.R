@@ -16,7 +16,6 @@ get_Qdata_back=function(Qdata){
         banqueHydro::format_time_for_qtvar()
       t2=tmin %>%
         banqueHydro::format_time_for_qtvar()
-      Sys.sleep(30)
       Qdata_back_oneyear=banqueHydro::bh_get_qtvar(station=station,
                                                    t1=t1,
                                                    t2=t2)

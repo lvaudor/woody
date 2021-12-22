@@ -16,9 +16,9 @@ To learn more about this package please consult
 
 (https://github.com/lvaudor/woody/blob/master/vignettes/woody.Rmd)
 
-and
+and this graphical summary:
 
-(https://github.com/lvaudor/woody/blob/master/inst/doc/schema_woody.jpg)
+![](https://github.com/lvaudor/woody/blob/master/inst/doc/schema_woody.jpg?raw=true)
 
 
 

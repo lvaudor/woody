@@ -12,7 +12,7 @@ predict_rf(newdata, obj_rf)
 \item{data}{data with variables Q, rT_Q, S}
 }
 \value{
-Wdata completed with column W (waiting time between two wood occurrences)
+Wdata completed with column Ypred (log of hourly flux) and Npred (hourly flux)
 }
 \description{
 Runs model random forest object on new data

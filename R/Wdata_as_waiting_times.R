@@ -11,10 +11,11 @@ Wdata_as_waiting_times=function(Wdata, maxWait=1200){
     dplyr::mutate(W=difftime(Time,TimeLagged, units="secs") %>%
                     as.numeric()) %>%
     dplyr::group_by(Time) %>%
-    dplyr::mutate(npieces=dplyr::n()) %>%
+    dplyr::mutate(npieces=dplyr::n(),
+                  num=1:dplyr::n()) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(W=dplyr::case_when(npieces<=1~W,
-                                     npieces>1~1/npieces)) %>%
+    dplyr::mutate(W=dplyr::case_when(npieces<=1 | num==1~W,
+                                     npieces>1 & num>1~1/npieces)) %>%
     dplyr::filter(W < maxWait) %>%
     dplyr::mutate(Y=log(3600/W)) %>%
     na.omit()

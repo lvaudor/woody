@@ -13,8 +13,6 @@ import_Wdata(path, site = path)
 }
 \value{
 Wdata
- @example
-Wdata=import_Wdata("data-raw/wood_data_Allier", site="Allier")
 }
 \description{
 Imports data regarding occurrence of wood from files under path (path>1 directory=1 event>all logs of the event)

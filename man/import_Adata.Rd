@@ -17,3 +17,6 @@ Adata
 \description{
 Imports data regarding annotation times
 }
+\examples{
+Adata=import_Adata("data-raw/annot_times_Ain.csv",site="Ain")
+}

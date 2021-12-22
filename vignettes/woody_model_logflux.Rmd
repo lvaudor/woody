@@ -1,0 +1,415 @@
+---
+title: "woody: model logflux"
+date: "13/12/2021"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{woody: model logflux}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r attach_woody, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE)
+library(woody)
+library(tidyverse)
+library(DiagrammeR)
+```
+
+
+# Global process
+
+```{r diagramme, echo=FALSE, fig.height=10}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+  tib_sites 
+  tib_W 
+  tib_WQ
+  tib_WQc
+  tib_WcQc
+  tib_WwtQc;
+  Wwt [color = green]
+  myrf [color = red]
+  tib_WpQc
+
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'import_Wdata()'
+  'get_Qdata()'
+  'complete_Qdata()' 
+  'complete_Wdata_with_Qdata()'
+  'Wdata_as_waiting_times()'
+  'run_rf()'
+  'predict_rf()'
+
+  # several 'edge' statements
+  tib_sites -> 'import_Wdata()' [arrowhead = none]
+  'import_Wdata()'-> tib_W [label = ' add Wdata']
+  tib_W -> 'get_Qdata()' [arrowhead = none]
+  'get_Qdata()'-> tib_WQ [label = ' add Qdata']
+  tib_WQ -> 'complete_Qdata()' [arrowhead=none]
+  'complete_Qdata()' -> tib_WQc [label = ' complete Qdata']
+  tib_WQc-> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  'complete_Wdata_with_Qdata()' -> tib_WcQc [label = ' complete Wdata']
+  tib_WcQc -> 'Wdata_as_waiting_times()' [arrowhead=none]
+  'Wdata_as_waiting_times()' -> tib_WwtQc [label = ' modify Wdata']
+  tib_WwtQc -> Wwt [label = ' agregate Wdata']
+  Wwt -> 'run_rf()' [arrowhead = none]
+  'run_rf()' -> myrf [label = ' run randomForest']
+  tib_WwtQc -> 'predict_rf()' [arrowhead = none] 
+  myrf -> 'predict_rf()' [arrowhead = none]
+  'predict_rf()' -> tib_WpQc [label =' predict based on Wdata']
+}
+")
+```
+
+
+# Prepare data
+
+## Hydrological stations
+
+Prepare data **describing the two stations**:
+
+```{r tib_sites}
+tib_sites=tibble::tibble(site=c("Ain","Allier"),
+                         q1.5=c(840,460),
+                         station=c("V2942010","K3400810")) %>% 
+  mutate(path=paste0("../data-raw/wood_data_",site))
+tib_sites
+```
+
+## Wdata : wood occurrence data
+
+First step: **import wood data** , indicating path to files and site name:
+
+```{r diagramme1, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+  tib_sites 
+  tib_W 
+
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'import_Wdata()'
+  
+  # several 'edge' statements
+  tib_sites -> 'import_Wdata()' [arrowhead = none]
+  'import_Wdata()'-> tib_W [label = ' add Wdata']
+}
+")
+```
+
+```{r import_Wdata, message=FALSE, warning=FALSE}
+result_file="../data-raw/results/tib_W.RDS"
+if(!file.exists(result_file)){
+  tib_W=tib_sites %>% 
+    group_by(vars=site,q1.5,station,path) %>% 
+    mutate(Wdata=purrr::map2(.x=path,.y=site,~import_Wdata(path=.x,site=.y))) %>% 
+    mutate(Wdata=purrr::map(.x=Wdata,~mutate(.x,site=factor(site,levels=tib_sites$site))))
+  saveRDS(tib_W,result_file)
+}
+tib_W=readRDS(result_file)
+``` 
+`tib_W` looks like this:
+
+```{r tib_W_look, echo=FALSE}
+tib_W
+```
+
+and inside `tib_W`, the first lines of `Wdata` (for both sites) look like this (for both sites):
+
+```{r tib_W_lookinside, echo=FALSE}
+head(tib_W$Wdata[[1]])
+```
+
+## Qdata: collect hydrological data & calculate all variables
+
+```{r diagramme2, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+  tib_W 
+  tib_WQ
+
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'get_Qdata()'
+
+
+  # several 'edge' statements
+  tib_W -> 'get_Qdata()' [arrowhead = none]
+  'get_Qdata()'-> tib_WQ [label = ' add Qdata']
+ }
+")
+```
+
+Collect **qtvar data from banquehydro**, for the period covered by Wdata, and back in time so as to be able to calculate T_Q:
+
+```{r tib_WQ}
+result_file="../data-raw/results/tib_WQ.RDS"
+if(!file.exists(result_file)){
+  tib_WQ=tib_W %>% 
+    mutate(Qdata=purrr::map(.x=Wdata,.y=station,
+                            ~get_Qdata(Wdata=.x,station=.y))) %>% 
+    mutate(Qdata=purrr::map2(.x=Qdata,.y=site, ~mutate(.x,site=.y)))
+  saveRDS(tib_WQ,result_file)
+}
+tib_WQ=readRDS(result_file)
+```
+
+`tib_WQ` looks like this:
+
+```{r tib_WQ_look, echo=FALSE}
+tib_WQ
+```
+
+and inside `tib_WQ`, the first lines of `Qdata` (for both sites) look like this:
+
+```{r, echo=FALSE}
+head(tib_WQ$Qdata[[1]])
+```
+
+
+## Qdata completed with calculation of T_Q and S
+
+```{r diagramme3, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+  tib_WQ
+  tib_WQc
+  
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'complete_Qdata()' 
+  
+  # several 'edge' statements
+  tib_WQ -> 'complete_Qdata()' [arrowhead=none]
+  'complete_Qdata()' -> tib_WQc [label = ' complete Qdata']
+  }
+")
+```
+
+```{r tib_WQc}
+result_file="../data-raw/results/tib_WQc.RDS"
+if(!file.exists(result_file)){
+  tib_WQc=tib_WQ %>% 
+    mutate(Qdata=purrr::map2(.x=Qdata,.y=q1.5,~complete_Qdata(qtvar=.x, qnorm=.y)))
+  saveRDS(tib_WQc,result_file)
+}
+tib_WQc=readRDS(result_file)
+``` 
+
+`tib_WQc` looks like `tib_WQ`, except now `Qdata` inside has been completed with new variables:
+
+```{r tib_WQc_lookinside}
+head(tib_WQc$Qdata[[1]])
+```
+
+
+## Wdata completed with discharge data
+
+```{r diagramme4, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+  tib_WQc
+  tib_WcQc
+
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'complete_Wdata_with_Qdata()'
+
+  # several 'edge' statements
+  tib_WQc-> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  'complete_Wdata_with_Qdata()' -> tib_WcQc [label = ' complete Wdata']
+}
+")
+```
+
+```{r tib_WcQc}
+result_file="../data-raw/results/tib_WcQc.RDS"
+if(!file.exists(result_file)){
+  tib_WcQc=tib_WQc %>% 
+    mutate(Wdata=purrr::map2(.x=Wdata,.y=Qdata,~complete_Wdata_with_Qdata(Wdata=.x,Qdata=.y)))
+  saveRDS(tib_WcQc,result_file)
+}
+tib_WcQc=readRDS(result_file)
+```
+
+Inside `tib_WcQc`, `Wdata` has been updated into:
+
+```{r tib_WcQc_lookinside, echo=FALSE}
+head(tib_WcQc$Wdata[[1]])
+```
+
+## Calculate waiting times to apply random forest model
+
+```{r diagramme5, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+ 
+  tib_WcQc
+  tib_WwtQc;
+ 
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'Wdata_as_waiting_times()'
+  tib_WcQc -> 'Wdata_as_waiting_times()' [arrowhead=none]
+  'Wdata_as_waiting_times()' -> tib_WwtQc [label = ' modify Wdata']
+  }
+")
+```
+
+We then calculate tib_Wwt, updating Wdata so that **1 row= 1 waiting time between two wood occurrences**.
+
+```{r tib_Wwt}
+result_file="../data-raw/results/tib_WwtQc.RDS"
+if(!file.exists(result_file)){
+  tib_WwtQc=tib_WcQc %>% 
+    mutate(Wdata=purrr::map(.x=Wdata,~Wdata_as_waiting_times(.x)))
+  saveRDS(tib_WwtQc,result_file)
+}
+tib_WwtQc=readRDS(result_file)
+```
+
+Inside `tib_Wwt`, `Wdata` now looks like this (for both sites):
+
+```{r tib_Wwt_lookinside, echo=FALSE}
+head(tib_WwtQc$Wdata[[1]])
+```
+
+
+<!-- ## Esummary: table with site, events, days, and day-night times -->
+
+<!-- ```{r Esummary} -->
+<!-- Esummary=Wdat %>% -->
+<!--   select(sitevent,site,event,Date) %>% -->
+<!--   mutate(dawn = lubridate::ymd_hms(paste0(Date," 7:00:00")), -->
+<!--          dusk = lubridate::ymd_hms(paste0(Date-lubridate::days(1)," 21:00:00"))) %>% -->
+<!--   unique() -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- Qdatc=bind_rows(Qdatc_Ain, -->
+<!--                 Qdatc_Allier) %>% -->
+<!--   mutate(Date=lubridate::date(Time)) %>% -->
+<!--   left_join(Esummary %>% -->
+<!--               select(sitevent,site,event,Date), -->
+<!--             by=c("site","Date")) %>% -->
+<!--   select(site,event,sitevent,Time,Date,everything()) -->
+<!-- ``` -->
+
+
+
+# Prediction 
+
+## Run random forest on Wdata (both sites)
+
+```{r diagramme6, echo=FALSE, fig.height=10}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+  tib_WwtQc;
+  Wwt [color = green]
+  myrf [color = red]
+
+  node [shape = ellipse,fixedsize = false,color = grey] 
+  'run_rf()'
+ 
+  tib_WwtQc -> Wwt [label = ' agregate Wdata']
+  Wwt -> 'run_rf()' [arrowhead = none]
+  'run_rf()' -> myrf [label = ' run randomForest']
+}
+")
+```
+
+We run **one random forest for both sites**. Site is one of the predictors anyway.
+
+```{r run_rf}
+# get a single table for Wdata (waiting times)
+Wwt=tib_WwtQc %>%
+  ungroup() %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata)
+
+file_result="../data-raw/results/rf.RDS"
+if(!file.exists(file_result)){
+  myrf <- run_rf(Wwt,
+                 pred_vars=c("Q","S","rT_Q","site"))
+  saveRDS(myrf,file_result)
+}
+myrf=readRDS(file_result)
+```
+
+## Predict Wdata based on random forest
+
+```{r diagramme7, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box,color = blue]
+
+  tib_WwtQc;
+  Wwt [color = green]
+  myrf [color = red]
+  tib_WpQc
+
+  node [shape = ellipse,fixedsize = false,color = grey] 
+
+  'run_rf()'
+  'predict_rf()'
+
+  # several 'edge' statements
+  tib_WwtQc -> Wwt [label = ' agregate Wdata']
+  Wwt -> 'run_rf()' [arrowhead = none]
+  'run_rf()' -> myrf [label = ' run randomForest']
+  tib_WwtQc -> 'predict_rf()' [arrowhead = none] 
+  myrf -> 'predict_rf()' [arrowhead = none]
+  'predict_rf()' -> tib_WpQc [label =' predict based on Wdata']
+}
+")
+```
+
+```{r pred}
+tib_WpQp=tib_WwtQc %>% 
+  mutate(Qdata=purrr::map(.x=Qdata,~mutate(.x,site=factor(site,levels=tib_sites$site)))) %>% 
+  mutate(Wdata=purrr::map(.x=Wdata,~predict_rf(newdata=.x,obj_rf=myrf)),
+         Qdata=purrr::map(.x=Qdata %>% na.omit(),~predict_rf(newdata=.x,obj_rf=myrf)))
+saveRDS(tib_WpQp,"../data-raw/results/tib_WpQp.RDS")
+```
+
+
+## Model performance
+
+Now let's assess the model's predictive performance
+
+For both sites: 
+
+```{r R2_both}
+R2=tib_WpQp %>% select(site,Wdata) %>% 
+  mutate(R2=purrr::map_df(Wdata,calc_rf_R2)) %>% 
+  unnest(R2)
+R2
+```
+
+## Plot predicted/observed
+
+```{r plot_pred, fig.width=6}
+Wdata_pred=tib_WpQp %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata, .name_repair="minimal")
+p=ggplot(Wdata_pred,aes(x=Y,y=Ypred))+
+  geom_point(alpha=0.01)+
+  geom_abline(intercept=0,slope=1, col="red")+
+  facet_grid(cols=vars(site),
+             labeller = labeller(.rows = label_both,
+                                 .cols = label_both))
+plot(p)
+```
+
