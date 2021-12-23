@@ -310,7 +310,7 @@ head(tib_WwtQc$Wdata[[1]])
 
 ## Run random forest on Wdata (both sites)
 
-```{r diagramme6, echo=FALSE, fig.height=10}
+```{r diagramme6, echo=FALSE, fig.height=3}
 grViz("
 digraph boxes_and_circles {
   graph [overlap = true, fontsize = 10]
@@ -349,7 +349,7 @@ myrf=readRDS(file_result)
 
 ## Predict Wdata based on random forest
 
-```{r diagramme7, echo=FALSE, fig.height=3}
+```{r diagramme7, echo=FALSE, fig.height=5}
 grViz("
 digraph boxes_and_circles {
   graph [overlap = true, fontsize = 10]
@@ -377,11 +377,10 @@ digraph boxes_and_circles {
 ```
 
 ```{r pred}
-tib_WpQp=tib_WwtQc %>% 
-  mutate(Qdata=purrr::map(.x=Qdata,~mutate(.x,site=factor(site,levels=tib_sites$site)))) %>% 
-  mutate(Wdata=purrr::map(.x=Wdata,~predict_rf(newdata=.x,obj_rf=myrf)),
-         Qdata=purrr::map(.x=Qdata %>% na.omit(),~predict_rf(newdata=.x,obj_rf=myrf)))
-saveRDS(tib_WpQp,"../data-raw/results/tib_WpQp.RDS")
+tib_WpQc=tib_WwtQc %>% 
+  mutate(Wdata=purrr::map(.x=Wdata,~predict_rf(newdata=.x,obj_rf=myrf)))
+
+saveRDS(tib_WpQc,"../data-raw/results/tib_WpQc.RDS")
 ```
 
 
@@ -392,7 +391,7 @@ Now let's assess the model's predictive performance
 For both sites: 
 
 ```{r R2_both}
-R2=tib_WpQp %>% select(site,Wdata) %>% 
+R2=tib_WpQc %>% select(site,Wdata) %>% 
   mutate(R2=purrr::map_df(Wdata,calc_rf_R2)) %>% 
   unnest(R2)
 R2
@@ -401,7 +400,7 @@ R2
 ## Plot predicted/observed
 
 ```{r plot_pred, fig.width=6}
-Wdata_pred=tib_WpQp %>% 
+Wdata_pred=tib_WpQc %>% 
   select(Wdata) %>% 
   tidyr::unnest(Wdata, .name_repair="minimal")
 p=ggplot(Wdata_pred,aes(x=Y,y=Ypred))+

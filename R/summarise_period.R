@@ -2,11 +2,14 @@
 #' @param data data to summarise
 #' @param period period (can be "hour","day",...)
 #' @param type of data either "Wdata" or "Qdata"
+#' @param period the time period at which to summarise
+#' @param Adata the annotation times (if available)
+#' @param sigma the
 #' @export
 #' @return summarised data
 #' data=tib_WpQc_h$Wdata[[1]];type="Wdata";period="hour";Adata=tib_WpQc_h$Adata[[1]]
 #'
-summarise_period=function(data, type="Wdata",period="hour", Adata=NULL){
+summarise_period=function(data, type="Wdata",period="hour", Adata=NULL,sigma){
   if(type=="Wdata"){
       data_grouped=data %>%
         mutate(Time = lubridate::floor_date(Time, "hour")) %>%
@@ -33,10 +36,10 @@ summarise_period=function(data, type="Wdata",period="hour", Adata=NULL){
                   S=mean(S),
                   T_Q=mean(T_Q),
                   mu=mean(Ypred), # 3600/W follows a log-normal law of mean mean(Ypred)
-                  sigma=sd(Ypred),
                   espW=exp(log(3600)-mu+(sigma^2)/2),
-                  Npred=3600/espW,
-                  Npredanc=exp(mu+(sigma^2)/2))
+                  Npred=3600/espW#,
+                  #Npredanc=exp(mu+(sigma^2)/2)
+                  )
   }
 
   # mu=log(3600)-meanY

@@ -3,5 +3,7 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   woody: woody.html
-last_built: 2021-12-13T14:20Z
+  woody_calculate_flux: woody_calculate_flux.html
+  woody_model_logflux: woody_model_logflux.html
+last_built: 2021-12-22T16:56Z
 
