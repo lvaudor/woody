@@ -4,14 +4,18 @@
 \alias{summarise_period}
 \title{summarise data to a period}
 \usage{
-summarise_period(data, type = "Wdata", period = "hour", Adata = NULL)
+summarise_period(data, type = "Wdata", period = "hour", Adata = NULL, sigma)
 }
 \arguments{
 \item{data}{data to summarise}
 
 \item{type}{of data either "Wdata" or "Qdata"}
 
-\item{period}{period (can be "hour","day",...)}
+\item{period}{the time period at which to summarise}
+
+\item{Adata}{the annotation times (if available)}
+
+\item{sigma}{the}
 }
 \value{
 summarised data
