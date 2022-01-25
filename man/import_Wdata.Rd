@@ -4,7 +4,7 @@
 \alias{import_Wdata}
 \title{Imports data regarding occurrence of wood from files under path (path>1 directory=1 event>all logs of the event)}
 \usage{
-import_Wdata(path, site = path)
+import_Wdata(path, site = path, min_length = NA, sample_length = FALSE)
 }
 \arguments{
 \item{path}{the path towards the events directory}

@@ -7,10 +7,10 @@
 #' @export
 #' @return Wdata
 #' @example
-#' Wdata=import_Wdata("data-raw/wood_data_Ain", site="Ain", min_length=NA, sample_length=FALSE)
-#' Wdata=import_Wdata("data-raw/wood_data_Allier", site="Allier", min_length=NA, sample_length=FALSE)
+#' Wdata=import_Wdata("data-raw/wood_data_Ain", site="Ain")
+#' Wdata=import_Wdata("data-raw/wood_data_Allier", site="Allier", min_length=1, sample_length=TRUE)
 
-import_Wdata=function(path,site=path){
+import_Wdata=function(path,site=path, min_length=NA, sample_length=FALSE){
     if(!stringr::str_detect(path,"\\/$")){path=stringr::str_c(path,"/")}
     event_dir=paste0(path,list.files(path))
     Wdata=tibble::tibble(event= paste0("event_",1:length(event_dir)),
@@ -35,6 +35,7 @@ import_Wdata=function(path,site=path){
         dplyr::filter(length_provided) %>%
         dplyr::filter(Length > min_length)
       if(sample_length){
+      # if parameter sample_length is TRUE
       # do not remove all rows with missing length
           prop=nrow(Wdata_li)/nrow(Wdata_lp)
           Wdata_ls=Wdata_lp %>%
