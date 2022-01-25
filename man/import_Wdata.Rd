@@ -10,6 +10,10 @@ import_Wdata(path, site = path)
 \item{path}{the path towards the events directory}
 
 \item{site}{the name of the site considered}
+
+\item{min_length}{the minimum length for a wood piece to be included in the dataset. Defaults to NA (no filtering).}
+
+\item{sample_length}{whether to sample the wood pieces with no length provided, according to the proportion of pieces with Length>min_length. Defaults to FALSE.}
 }
 \value{
 Wdata

@@ -15,3 +15,7 @@ the data from file
 \description{
 Reads one wood log file. To be used from import_Wdata()
 }
+\examples{
+woody:::read_1_wood_log_file("data-raw/wood_data_Ain/event20071122/Wood Log 20071122 15h11m.txt")
+woody:::read_1_wood_log_file("data-raw/wood_data_Ain/event20120101/Event_20120101.xlsx")
+}
