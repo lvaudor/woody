@@ -1,9 +1,13 @@
 ---
-title: "woody: calculate flux"
-date: "13/12/2021"
-output: rmarkdown::html_vignette
+title: "1. woody: calculate flux"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true           
+    number_sections: true   
+    df_print: kable
 vignette: >
-  %\VignetteIndexEntry{woody: calculate flux}
+  %\VignetteIndexEntry{1. woody: calculate flux}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,211 +20,272 @@ library(tidyverse)
 library(DiagrammeR)
 ```
 
-# Principles
+# Global process
 
-In the first part of this process we have been estimating $Y$ which corresponds to an **instantaneous logflux**.
+## For one site
 
-$$Y = log(3600/W)$$
+```{r diagramme0, echo=FALSE, fig.height=10}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  A [fillcolor=pink]
+  Qc  [fillcolor = cadetblue1]
+  W [fillcolor = burlywood1]
+  Qh [fillcolor=cadetblue1]
+  myrf[fillcolor=gold]
+  Qp [fillcolor=cadetblue2]
+  Qn [fillcolor=cadetblue3]
+  Wn [fillcolor=burlywood2]
+  N  [fillcolor=darkkhaki]
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'interp_Qdata()'
+  'predict_rf()'
+  'summarise_Qdata()'  
+  'summarise_Wdata()'
+  
+  # several 'edge' statements
+  Qc -> 'interp_Qdata()' [arrowhead = none]
+  'interp_Qdata()'-> Qh [label= 'interpolate Qdata hourly']
+  Qh, myrf-> 'predict_rf()'
+  'predict_rf()' -> 'Qp' [label = ' add Y_pred values']
+  Qp -> 'summarise_Qdata()' [arrowhead = none]
+  'summarise_Qdata()' -> 'Qn' [label = ' add N_pred values']
+  A,W -> 'summarise_Wdata()' [arrowhead = none]
+  'summarise_Wdata()' -> 'Wn' [label = ' add N_obse values']
+  Wn,Qn  -> 'N' 
 
-where $W$=waiting time between two wood occurrences and 3600 seconds=1 hour.
+}
+")
+```
 
-To transform this estimate into an actual **hourly flux** one has to be cautious as to which **sampling resolution** to use. Indeed, in Wdata, the sampling is particularly important when flux is important (since each observation corresponds to a piece of wood). Thus predicting an hourly flux without overestimating it requires to rely on the distribution of W rather than Y and taking into account properties of **mathematical distributions**, in particular the variance of Y ($\sigma$).
+## For several sites
 
-For now, we estimate roughly that $\sigma=1.5$.
+Here, we want to carry out this process for two sites, so that we use and enrich a nested table from step to step in the following manner:
 
+```{r diagramme1, echo=FALSE, fig.height=7}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true,  labeljust=l]
+  
+  graph [fontsize=10 compound=true overlap=true];
+    node [shape=egg fontsize=10, style=filled]
+    // all nodes related to Q
+    node [fillcolor=cadetblue1]
+    'Qc8'  [label='Qc[1,2]'] Qh
+    'Qh' [label='Qh[1,2]']
+    node [fillcolor=cadetblue2]
+    'Qp'  [label='Qp[1,2]'] 
+    node [fillcolor=cadetblue3]
+    'Qn'  [label='Qn[1,2]']
+    'Qn12'  [label='Qn[1,2]']
+    'Qn13'  [label='Qn[1,2]']
+    // all nodes related to W
+    node [fillcolor=burlywood1, label='W[1,2]']
+    'W8' 'W9' 'W10' 'W11'
+    // all nodes related to W+Qnode 
+     node [label= 'W[1,2]', fillcolor = burlywood]
+    'W8' 'W9' 'W10' 'W11'
+    node [label= 'Wn[1,2]', fillcolor = burlywood2]
+    'Wn' 'Wn13'
+    node [label= 'N[1,2]', fillcolor = darkkhaki]
+    'N'
+    
+    node[shape=box]
+    myrf [fillcolor = gold, label='myrf']
+    
+    // all nodes related to descriptors
+    node [shape=egg, fillcolor=ivory, label='descriptors[1,2]']
+    'descriptors8'    'descriptors9'    'descriptors10' 'descriptors11' 'descriptors12' 'descriptors13'
+    
+    subgraph cluster_8 {'descriptors8' 'W8' 'Qc8' label='tib_WpQc'}
+    subgraph cluster_9 {'descriptors9' 'W9' 'Qh'; label='tib_WpQh'}
+    subgraph cluster_10 {'descriptors10' 'W10' 'Qp' ; label='tib_WpQp'}
+    subgraph cluster_11 {'descriptors11' 'W11' 'Qn'; label='tib_WpQn'}
+    subgraph cluster_12 {'descriptors12' 'Wn' 'Qn12'; label='tib_WnQn'}
+    subgraph cluster_13 {'descriptors13' 'Wn13', 'Qn13' 'N'; label='tib_WnQnN'}
+    
+    edge[color=grey]
+    'descriptors8' -> 'descriptors9' -> 'descriptors10' -> 'descriptors11' -> 'descriptors12' -> 'descriptors13'
+    'W8' -> 'W9' -> 'W10' -> 'W11' -> 'Wn' -> 'Wn13'
+    'descriptors11' -> 'Wn' [label='An[1,2]', fontsize=6]
+    'Qc8' -> 'Qh' 
+    'Qp' -> 'Qn' -> 'Qn12' -> 'Qn13'  
+    'Qh','myrf' -> 'Qp'
+    'Wn','Qn12' -> 'N'
+  }
+")
+```
 
-```{r tib_WpQp}
+# From log-flux estimates $Y_{pred}$ to flux estimates $N_{pred}$
+
+First, let's see how the **predictions of log-flux** $Y_{pred}$ (estimated through the Random Forest) might be used to calculate **predictions of flux $N_{pred}$**. It is indeed necessary to **take into account the residuals error of the model** to do so.
+
+$$Y =log(N)= log(3600/W)$$
+
+where :
+
+- $N$ is an hourly flux of wood
+- $W$ corresponds to the waiting time(in seconds) between two wood occurrences
+- 3600 corresponds to 3600 seconds i.e. one hour
+
+## Distribution of $Y_{pred}$
+
+Let's have a look at the **distribution of residuals**:
+
+```{r plot_distrib, fig.width=6}
 tib_WpQc=readRDS("../data-raw/results/tib_WpQc.RDS")
-myrf=readRDS("../data-raw/results/rf.RDS")
-tib_WpQp=tib_WpQc %>%
-  mutate(Qdata=purrr::map(.x=Qdata, ~interp_Qdata(.x, timescale="hours")))%>%
-  mutate(Qdata=purrr::map(.x=Qdata,~mutate(.x,site=factor(site,levels=c("Ain","Allier"))))) %>%
-  mutate(Qdata=purrr::map(.x=Qdata %>% na.omit(),~predict_rf(newdata=.x,obj_rf=myrf)))
+Wdata_pred=tib_WpQc %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata, .name_repair="minimal")
+p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y-Y_pred))+
+  geom_point(alpha=0.05)+
+  facet_grid(cols=vars(site),
+             labeller = labeller(.rows = label_both,
+                                 .cols = label_both))+
+  geom_hline(aes(yintercept=0), col='red')
+plot(p)
+```
 
+The observed value $Y$ is distributed around predicted value $Y_{pred}$, in an **approximately Gaussian distribution with standard deviation $\sigma$**, hence we can hypothesize that
+
+$$Y \sim \mathcal{N}(\mu,\sigma) $$
+
+$$E(Y)=E(Y_{pred})=\mu$$
+
+$\sigma$, as the **residual standard deviation**, corresponds to a measure of error of the model predicting $Y=log(N)$.
+
+Here is an estimate of $\sigma$ for both sites:
+
+```{r calc_sigma}
+Wdata_pred %>% 
+  group_by(site) %>% 
+  mutate(residuals=Y_pred-Y) %>% 
+  summarise(sigma=sd(residuals))
 ```
 
 
-```{r tib_WhQh}
-tib_WhQh=tib_WpQp %>%
+For now, we will estimate roughly that $\sigma=1.5$ for both sites.
+
+On the log scale, $E(Y)=E(Y_{pred})$, but going back to a **natural (not logged) scale for fluxes**:
+
+$$E(N)=E(e^Y)=e^{E(Y)+\frac{\sigma^2}{2}}$$
+
+Hence $E(N)>e^{E(Y)}$: the expected value of $N$, $E(N)$,  is higher than the exponential of $E(Y)$.
+
+## Empirical explanation of $E(N_{pred})>exp(E(Y_{pred}))$
+
+This can also be understood, in a **more empirical way**, like this:
+
+The error in $log(N)$ is symmetrical, which means that $N$ can equally be **a bit lower** or **a lot higher** than predicted (on a natural scale). Hence the mean of values on this natural scale is higher that just the exponential of the mean on the log scale.
+
+In the following section, we will hence use this **estimate of $\sigma$ to convert $Y_{pred}$ estimates to $N_{pred}$ estimates**.
+
+# Summarise `Qdata` hourly and calculate $N_{pred}$ and $N_{obs}$
+
+## Interpolate `Qdata` hourly
+
+Let's **interpolate Qdata at an hourly timescale** and use these interpolated, hourly data to calculate $Y_{pred}$.
+
+```{r tib_WQh}
+myrf=readRDS("../data-raw/results/rf.RDS")
+tib_WQc=readRDS("../data-raw/results/tib_WQc.RDS")
+tib_WQh=tib_WQc %>%
+  # interpolate at an hourly timescale
+  mutate(Qdata=purrr::map(.x=Qdata,
+                          ~interp_Qdata(.x, timescale="hours")))
+```
+
+## Calculate hourly $Y_pred$
+
+```{r tib_WQp}
+tib_WQp=tib_WQh %>%
+  mutate(Qdata=purrr::map(.x=Qdata %>% na.omit(),
+                          ~predict_rf(newdata=.x,obj_rf=myrf)))
+
+```
+
+## Deduce hourly $N_{pred}$
+
+```{r tib_WQn}
+tib_WQn=tib_WQp %>%
   mutate(apath=paste0("../data-raw/annot_times_",site,".csv")) %>%
+  mutate(Qdata=purrr::map(.x=Qdata,
+                          ~summarise_Qdata(Qdata=.x,sigma=1.5)))
+```
+
+## Get hourly $N_{obs}$ and $N_{obse}$ from `Wdata`
+
+We want to compare these values $N_{pred}$ with the **observed number of wood pieces during an hour** $N_{obse}$.
+
+The **observation of wood pieces is not continuous**, so that we have to take into account, for each hour, the **proportion of time the observation of wood pieces really occurred** $P_{obs}$.  This information is retrievable from `Adata` (A for "annotation").
+
+$N_{obse}=N_{obs}/P_{obs}$
+
+
+
+```{r tib_WnQn}
+tib_WnQn=tib_WQn %>%
   mutate(Adata=purrr::map2(.x=apath,.y=site,
                            ~import_Adata(path=.x,site=.y))) %>%
   mutate(Wdata=purrr::map2(.x=Wdata,.y=Adata,
-                           ~summarise_period(data=.x,type="Wdata",period="hour",Adata=.y))) %>%
-  mutate(Qdata=purrr::map(.x=Qdata,
-                          ~summarise_period(data=.x,type="Qdata",period="hour", sigma=1.5))
-  )
-
+                           ~summarise_Wdata(Wdata=.x,Adata=.y)))
 ```
 
-```{r, fig.height=4}
-Wh=tib_WhQh %>%
-  select(Wdata) %>%
-  tidyr::unnest(Wdata,.name_repair="minimal")
-Qh=tib_WhQh %>%
-  select(Qdata) %>%
-  tidyr::unnest(Qdata, .name_repair="minimal")
+Once imported and cleaned, this how `Adata` (first lines, for the Ain site) looks like:
+
+```{r show_Adata, echo=FALSE}
+knitr::kable(head(tib_WnQn$Adata[[1]]))
 ```
 
-```{r}
-Qhr=Qh %>% right_join(Wh %>% select(site,event,sitevent,Time,Nobsc))
+So this is how `Wdata` now looks like, with a new **extrapolated estimate for the observed flux** $N_{obse}$ (first lines, for the Ain site)
+
+
+```{r show_tib_WnQn_Wdata, echo=FALSE}
+knitr::kable(head(tib_WnQn$Wdata[[1]]))
+```
+
+## Join values $N_{pred}$ (from `Qdata`) and $N_{obse}$ (from `Wdata`) into a single table `Ndata`
+
+
+```{r tib_WnQnN}
+tib_WnQnN=tib_WnQn %>% 
+  mutate(Ndata=purrr::map2(.x=Qdata,.y=Wdata,
+                           ~left_join(.x,.y,by=c("site","Time"))))
+```
+
+# Summary 
+
+To make the production of plots easier, we unnest `Ndata` from `tib_WnQnN`:
+
+```{r unnest_Ndata}
+Ndata=tib_WnQnN %>% 
+  ungroup() %>% 
+  select(Ndata) %>% 
+  tidyr::unnest(Ndata)
+```
+
+## Model performance
+
+```{r R2}
+R2=tib_WnQnN %>% select(site,Ndata) %>% 
+  mutate(R2=purrr::map_df(Ndata,calc_rf_R2,type="N")) %>% 
+  tidyr::unnest(R2)
+R2
 ```
 
 
 
-```{r,fig.height=12}
-ggplot(data=Wh,aes(x=Time,y=Nobsc))+
-  geom_line(col="blue")+
-  geom_point(col="blue")+
-  geom_line(data=Qhr, aes(x=Time, y=Npred),col="green")+
-  geom_point(data=Qhr, aes(x=Time, y=Npred),col="green")+
-  facet_wrap(vars(sitevent), scales="free_x",ncol=1)+
-  scale_y_log10()
+## Plot of $N_{pred}$ and $N_{obs}$
+
+
+```{r plot_N, fig.height=8, fig.width=8}
+Ndataplot=Ndata %>% 
+  tidyr::pivot_longer(cols=c(N_pred,N_obse), names_to="type") %>%
+  filter(!is.na(event))
+ggplot(Ndataplot, aes(x=Time,y=value))+
+  geom_path(aes(col=type))+
+  geom_point(aes(col=type))+
+  facet_wrap(site~event, scales="free", ncol=2)
 ```
-
-
-<!-- ```{r pred_lc} -->
-<!-- pred_hl=predict_rf(obj_rf=myrf, -->
-<!--                    newdata=Qdatc_hl) %>%  -->
-<!--       mutate(based_on=mysite) -->
-<!-- readr::write_csv2(pred_hl, -->
-<!--                   file="data-raw/results/pred_hl.csv") -->
-<!-- pred_hl=pred_hl %>%  -->
-<!--   mutate(Wpred=3600/exp(Ypred)) %>% -->
-<!--   mutate(Wpred=Wpred/log(2)) %>% -->
-<!--   mutate(Npred=3600/Wpred, -->
-<!--          Ndiff=Npred-N)  -->
-<!-- ``` -->
-
-<!-- ## Prediction performance -->
-
-<!-- ```{r} -->
-<!-- tib_R2=pred_hl %>% -->
-<!--   na.omit() %>%  -->
-<!--   group_by(site) %>%  -->
-<!--   tidyr::nest() %>%  -->
-<!--   mutate(R2=purrr::map(data,calc_rf_R2)) %>%  -->
-<!--   select(site,R2) %>%  -->
-<!--   unnest(cols=c(R2)) %>%  -->
-<!--   ungroup() -->
-<!-- tib_R2 -->
-
-<!-- ggplot(pred_hl, aes(x=N, y=Npred))+ -->
-<!--   geom_point()+ -->
-<!--   facet_grid(cols=vars(site), -->
-<!--              labeller = labeller(.rows = label_both, .cols = label_both))+ -->
-<!--   scale_x_log10()+scale_y_log10()+ -->
-<!--   geom_abline(intercept=0,slope=1) -->
-
-<!-- ``` -->
-
-
-<!-- - red: prediction based on site itself -->
-<!-- - red, dashed : prediction based on other site -->
-<!-- - brown: observed -->
-
-<!-- ```{r plots_hourly_summaries, fig.width=8, fig.height=14} -->
-<!-- pred_hl_plot=pred_hl %>% filter(!is.na(Y)) -->
-<!-- p=ggplot(Esummary %>% -->
-<!--            filter(site==mysite), -->
-<!--          aes(x=dawn,y=1))+ -->
-<!--  geom_rect(aes(xmin=dusk,xmax=dawn,ymin=0,ymax=+Inf), -->
-<!--             fill="#495272",alpha=0.1)+ -->
-<!--  geom_step(data=pred_hl_plot %>% filter(site==based_on), -->
-<!--            aes(x=Time, y=exp(Ypred)), -->
-<!--            color="red")+ -->
-<!--  geom_step(data=pred_hl_plot %>% filter(site!=based_on), -->
-<!--        aes(x=Time, y=exp(Ypred)), -->
-<!--        color="red",linetype=2)+ -->
-<!--  geom_point(data=pred_hl_plot %>% filter(site==based_on), -->
-<!--            aes(x=Time, y=exp(Y)), -->
-<!--            color="brown")+ -->
-<!--  facet_wrap(facets=vars(sitevent),ncol=1, scales="free_x")+ -->
-<!--  scale_y_log10()+ -->
-<!--  scale_x_datetime(date_labels =  "%d", date_breaks="1 day") + -->
-<!--   ggtitle(mysite) -->
-<!-- plot(p)   -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- ggplot(pred_hl,aes(x=event,y=Ndiff))+ -->
-<!--   geom_boxplot()+ -->
-<!--   facet_grid(cols=vars(site), -->
-<!--              labeller = labeller(.rows = label_both, .cols = label_both), -->
-<!--              scales="free_x")+ -->
-<!--   scale_y_continuous(limits=c(-1000,1000)) -->
-<!-- ``` -->
-
-<!-- ```{r,fig.height=15,fig.width=12} -->
-
-<!-- dd=Qdatc%>%  -->
-<!--   filter(!is.na(event)) %>%  -->
-<!--   group_by(site,event,sitevent) %>% -->
-<!--   summarise(timemin=min(Time), -->
-<!--             timemax=max(Time), -->
-<!--             tbef=max(T_Q), -->
-<!--             .groups="drop") %>%  -->
-<!--   mutate(start_period=timemin-lubridate::days(round(tbef))-5, -->
-<!--          end_period=timemax+lubridate::days(7)) -->
-
-<!-- get_data=function(ddline){ -->
-<!--   Qdatc %>%  -->
-<!--     filter(site==ddline$site) %>%  -->
-<!--     select(-site,-event,-sitevent) %>%  -->
-<!--     filter(Time>ddline$start_period, -->
-<!--            Time<ddline$end_period) -->
-<!-- } -->
-<!-- ddd=dd %>% -->
-<!--   mutate(id=1:n()) %>%  -->
-<!--   group_by(id) %>%  -->
-<!--   nest() %>%  -->
-<!--   mutate(newdata=purrr::map(data,get_data)) %>%  -->
-<!--   unnest(newdata) %>%  -->
-<!--   unnest(data) %>%  -->
-<!--   select(-id,-start_period,-end_period) %>%  -->
-<!--   ungroup()  -->
-
-<!-- pred_hld=pred_hl %>%  -->
-<!--   mutate(timemin=lubridate::floor_date(Time,"day"), -->
-<!--          timemax=lubridate::ceiling_date(Time,"day")) %>%  -->
-<!--   group_by(site,event,sitevent,Date,timemin,timemax) %>% -->
-<!--   summarise(Ndiff=sum(Ndiff,na.rm=TRUE)) %>%  -->
-<!--   mutate(est=Ndiff) -->
-
-
-<!-- ggplot(ddd)+ -->
-<!--     geom_rect(data=pred_hld, -->
-<!--             aes(xmin=timemin,xmax=timemax,ymin=0,ymax=+Inf,fill=est))+ -->
-<!--   geom_line(data=ddd, -->
-<!--             aes(x=Time,y=Q), -->
-<!--             col="blue")+ -->
-
-<!--   facet_wrap(vars(sitevent),nrow=11,scales="free_x")+ -->
-<!--   scale_fill_gradient2(low="red",mid="white",high="green",midpoint=0) -->
-<!-- ``` -->
-
-
-
-<!-- ```{r Wdat_h} -->
-<!-- tib_WpQc_h=tib_WpQc %>% -->
-<!--   mutate(apath=paste0("../data-raw/annot_times_",site,".csv")) %>%  -->
-<!--   mutate(Adata=purrr::map2(.x=apath,.y=site, -->
-<!--                            ~import_Adata(path=.x,site=.y))) %>%  -->
-<!--   mutate(Wdata=purrr::map2(.x=Wdata,.y=Adata, -->
-<!--                            ~summarise_period(data=.x,type="Wdata",period="hour",Adata=.y))) -->
-
-<!-- ``` -->
-
-<!-- ```{r, fig.height=4} -->
-<!-- Wdatah=tib_WpQc_h %>%  -->
-<!--   select(Wdata) %>%  -->
-<!--   tidyr::unnest(cols=c(Wdata),names_repair="minimal") -->
-<!-- ``` -->
-
-<!-- ```{r,fig.height=12} -->
-<!-- ggplot(data=Wdatah,aes(x=Time,y=Nobsc))+ -->
-<!--   geom_point()+ -->
-<!--   geom_line(col="blue")+ -->
-<!--   facet_wrap(vars(sitevent), scales="free_x",ncol=1)+ -->
-<!--   scale_y_log10() -->
-<!-- ``` -->

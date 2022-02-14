@@ -1,8 +1,11 @@
 ---
-title: "woody: predict wood occurrence data based on discharge data"
-author: "Lise Vaudor"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+title: "woody"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true           
+    number_sections: true   
+    df_print: kable
 vignette: >
   %\VignetteIndexEntry{woody}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,18 +13,87 @@ vignette: >
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+library(woody)
+library(tidyverse)
+library(DiagrammeR)
+```
+
+# Global process
+
+```{r diagramme, echo=FALSE, fig.height=10}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  wpath [fillcolor = burlywood1]
+  qpath  [fillcolor = cadetblue1]
+  W [fillcolor = burlywood1]
+  Q  [fillcolor = cadetblue1]
+  Wc [fillcolor = darkkhaki]
+  Qc  [fillcolor = cadetblue1]
+  Q [fillcolor = cadetblue1]
+  Wwt [fillcolor = darkkhaki]
+  Wwt_test [fillcolor = darkkhaki]
+  myrf [fillcolor = gold]
+  Wp [fillcolor = darkolivegreen2]
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'import_Wdata()'
+  'import_Qdata()'
+  'complete_Qdata()' 
+  'complete_Wdata_with_Qdata()'
+  'Wdata_as_waiting_times()'
+  'run_rf()'
+  'predict_rf()'
+
+  # several 'edge' statements
+  wpath -> 'import_Wdata()' [arrowhead = none]
+  'import_Wdata()'-> W 
+  qpath -> 'import_Qdata()' [arrowhead = none]
+  'import_Qdata()'-> Q 
+  Q -> 'complete_Qdata()' [arrowhead=none]
+  'complete_Qdata()' -> Qc 
+  W -> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  Qc-> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  'complete_Wdata_with_Qdata()' -> Wc
+  Wc -> 'Wdata_as_waiting_times()' [arrowhead=none]
+  'Wdata_as_waiting_times()' -> Wwt
+  Wwt -> 'run_rf()' [arrowhead = none]
+  'run_rf()' -> myrf 
+  myrf -> 'predict_rf()' [arrowhead = none]
+  'Wwt_test' -> 'predict_rf()' [arrowhead = none]
+  'predict_rf()' -> 'Wp' 
+}
+")
 ```
 
 # Prepare data
 
+## Get `W` data about wood occurrences
+
+```{r diagramme1, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  wpath [fillcolor = burlywood]
+  W [fillcolor = burlywood]
+
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'import_Wdata()'
+ 
+
+  # several 'edge' statements
+  wpath -> 'import_Wdata()' [arrowhead = none]
+  'import_Wdata()'-> W 
+}
+")
+```
+
 ```{r tree_mypath}
-mypath="../data-raw/mem_data/woody_data_train/"
+wpath="../data-raw/mem_data/woody_data_train/"
 mystation="V2942010"
-fs::dir_tree(mypath)
+fs::dir_tree(wpath)
 ```
 
 ```{r attach_woody}
@@ -31,79 +103,227 @@ library(woody)
 Import all wood log files inside a file (1 directory per event)
 
 ```{r import_Wdata, message=FALSE, warning=FALSE}
-Wdat=import_Wdata(mypath,site="training") 
+W=import_Wdata(wpath,site="training") 
 ``` 
 
-Collect **qtvar data** from banquehydro, for the **period covered by Wdata**
+## Get `Q` data about discharge
+
+```{r diagramme2, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  qpath  [fillcolor = cadetblue1]
+  Q  [fillcolor = cadetblue1]
+
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'import_Qdata()'
+  
+  qpath -> 'import_Qdata()' [arrowhead = none]
+  'import_Qdata()'-> Q 
+
+}
+")
+```
+
+Import `Q`:
 
 ```{r bh_get_qtvar}
-Qdat=get_Qdata(Wdata=Wdat,
-               station=mystation,
-               back_in_time=TRUE)
-
-Qdat %>% 
-  dplyr::pull(Time) %>% 
-  range()
-
-head(Qdat)
+qpath="../data-raw/Qdata/Qdatc_Ain.csv"
+Q=import_Qdata(path=qpath, site="Ain")
 ```
 
-Now **complete Qdata** with **variables T_Q and S**
+The first lines of `Q` look like this
+
+```{r show_Q, echo=FALSE}
+knitr::kable(head(Q))
+```
+
+## Complete `Q` into `Qc`
+
+```{r diagramme3, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+   graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  Qc  [fillcolor = cadetblue1]
+  Q [fillcolor = cadetblue1]
+
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'complete_Qdata()' 
+
+
+  # several 'edge' statements
+  Q -> 'complete_Qdata()' [arrowhead=none]
+  'complete_Qdata()' -> Qc 
+
+}
+")
+```
+
+Now **complete `Q`** with **variables T_Q and S**
 
 ```{r complete_Qdata}
-Qdatc=complete_Qdata(qtvar=Qdat,site="site1")
-head(Qdatc)
+result_file="../data-raw/results/Q.RDS"
+if(!file.exists(result_file)){
+  Qc=complete_Qdata(qtvar=Q,site="Ain")
+  saveRDS(Qc,result_file)
+}
+Qc=readRDS(result_file)
+```
+The first lines of `Qc` look like this:
+
+```{r show_Qc, echo=FALSE}
+knitr::kable(head(Qc))
 ```
 
-Complete Wdat with discharge data (interpolating Qdat)
+## Complete `W` with `Q` and get `Wc`
+
+```{r diagramme4, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+ graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  W [fillcolor = burlywood]
+  Wc [fillcolor = darkkhaki]
+  Qc  [fillcolor = cadetblue1]
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'complete_Wdata_with_Qdata()'
+
+
+  # several 'edge' statements
+  W -> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  Qc-> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  'complete_Wdata_with_Qdata()' -> Wc
+}
+")
+```
+
+Complete `W` with discharge data (interpolating `Q`)
 
 ```{r complete_Wdata_with_Qdata}
-Wdatc=complete_Wdata_with_Qdata(Wdata=Wdat,
-                                Qdata=Qdatc)
-head(Wdatc)
+Wc=complete_Wdata_with_Qdata(Wdata=W,
+                             Qdata=Qc)
 ```
 
-Then calculate Wdata_wt, where 1 row= 1 waiting time between two wood occurrences.
+The first lines of `Wc` look like this:
+
+```{r show_Wc, echo=FALSE}
+knitr::kable(head(Wc))
+```
+
+## Transform `Wc` into `Wwt`
+
+```{r diagramme5, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  Wc [fillcolor = darkkhaki]
+  Wwt [fillcolor = darkkhaki]
+ 
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'Wdata_as_waiting_times()'
+
+  # several 'edge' statements
+ 
+  Wc -> 'Wdata_as_waiting_times()' [arrowhead=none]
+  'Wdata_as_waiting_times()' -> Wwt
+}
+")
+```
+
+Then calculate `Wwt`, where 1 row= 1 waiting time between two wood occurrences.
 
 ```{r Wdata_as_waiting_times}
-Wdat_wt=Wdata_as_waiting_times(Wdatc)
+Wwt=Wdata_as_waiting_times(Wc)
+```
+
+The first lines of `Wwt` look like this:
+
+```{r show_Wwt, echo=FALSE}
+knitr::kable(head(Wwt))
 ```
 
 # Run random forest
 
+```{r diagramme6, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+   graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  Wwt [fillcolor = darkkhaki]
+  myrf [fillcolor = gold]
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+
+  'run_rf()'
+
+  # several 'edge' statements
+  Wwt -> 'run_rf()' [arrowhead = none]
+  'run_rf()' -> myrf 
+}
+")
+```
+
 ```{r run_rf}
-myrf <- run_rf(Wdat_wt)
+myrf <- run_rf(Wwt)
 myrf
 ```
+
+# Get predictions and assess random forest performance
+
+```{r diagramme7, echo=FALSE, fig.height=3}
+grViz("
+digraph boxes_and_circles {
+   graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  Wwt_test [fillcolor = darkkhaki]
+  myrf [fillcolor = gold]
+  Wp [fillcolor = darkolivegreen2]
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'predict_rf()'
+
+  # several 'edge' statements
+ 
+  Wwt_test -> 'predict_rf()' [arrowhead = none] 
+  myrf -> 'predict_rf()' [arrowhead = none]
+  'predict_rf()' -> 'Wp' 
+}
+")
+```
+
+## On the training dataset itself
+
 
 Predict on training data itself
 
 ```{r pred_on_train}
-Wdat_wt=predict_rf(obj_rf=myrf,
-                   newdata=Wdat_wt)
+Wp=predict_rf(obj_rf=myrf,
+              newdata=Wwt)
 ```
 
 R2:
 
 ```{r calc_R2_on_train}
-calc_rf_R2(Wdat_wt)
+calc_rf_R2(Wp)
 ```
 
-# Get predictions on another dataset
+## On another dataset
 
 ```{r pred_on_other_data, warning=FALSE, message=FALSE}
-pathpred="../data-raw/mem_data/woody_data_predict/"
+wpathpred="../data-raw/mem_data/woody_data_predict/"
 
-Wdat_forpred=import_Wdata(pathpred)
-
-Qdat_forpred= get_Qdata(Wdat_forpred, station="V2942010") %>% 
-    complete_Qdata()
-
-Wdat_pred=Wdat_forpred %>%
-  complete_Wdata_with_Qdata(Qdat_forpred) %>% 
+Wwt_test=import_Wdata(wpathpred) %>%
+  complete_Wdata_with_Qdata(Qc) %>% 
   Wdata_as_waiting_times() 
 
-pred_rf=predict_rf(Wdat_pred,myrf)
-calc_rf_R2(pred_rf)
+Wp_test=predict_rf(Wwt_test,myrf)
+calc_rf_R2(Wp_test)
 ```
 

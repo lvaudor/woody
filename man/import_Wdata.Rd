@@ -21,3 +21,7 @@ Wdata
 \description{
 Imports data regarding occurrence of wood from files under path (path>1 directory=1 event>all logs of the event)
 }
+\examples{
+Wdata=import_Wdata("data-raw/wood_data_Ain", site="Ain")
+Wdata=import_Wdata("data-raw/wood_data_Allier", site="Allier", min_length=1, sample_length=TRUE)
+}
