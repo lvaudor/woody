@@ -8,6 +8,6 @@ run_rf=function(Wdatcwt,pred_vars=c("Q","S","rT_Q")){
   Wdata_rf <- Wdatcwt %>%
     dplyr::select(all_vars) %>%
     na.omit()
-  myrf=randomForest::randomForest(Y~.,data=Wdata_rf)
+  myrf=randomForest::randomForest(Y~.,data=Wdata_rf, ntree=1000)
   return(myrf)
 }

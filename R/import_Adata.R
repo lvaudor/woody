@@ -27,9 +27,9 @@ import_Adata=function(path, site){
   result=purrr::map2_df(Adata$start,
                         Adata$end,
                         cut_obs_times) %>%
-    dplyr::mutate(obs_duration=as.numeric(difftime(end,start,units="hours"))) %>%
+    dplyr::mutate(P_obs=as.numeric(difftime(end,start,units="hours"))) %>%
     dplyr::group_by(Time) %>%
-    dplyr::summarise(obs_duration=sum(obs_duration),
+    dplyr::summarise(P_obs=sum(P_obs),
                      .groups="drop")
 return(result)
 }

@@ -18,7 +18,12 @@ To learn more about this package please consult
 
 and this graphical summary:
 
-![](https://github.com/lvaudor/woody/blob/master/inst/doc/schema_woody.jpg?raw=true)
+1. Modelling log-flux of wood:
 
+![](https://github.com/lvaudor/woody/blob/master/inst/doc/diag_1.png?raw=true)
+
+
+2. Calculating hourly flux of wood (from instantaneous log-flux)
+![](https://github.com/lvaudor/woody/blob/master/inst/doc/diag_2.png?raw=true)
 
 

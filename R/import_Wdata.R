@@ -6,10 +6,9 @@
 #' @importFrom magrittr %>%
 #' @export
 #' @return Wdata
-#' @example
+#' @examples
 #' Wdata=import_Wdata("data-raw/wood_data_Ain", site="Ain")
 #' Wdata=import_Wdata("data-raw/wood_data_Allier", site="Allier", min_length=1, sample_length=TRUE)
-
 import_Wdata=function(path,site=path, min_length=NA, sample_length=FALSE){
     if(!stringr::str_detect(path,"\\/$")){path=stringr::str_c(path,"/")}
     event_dir=paste0(path,list.files(path))
@@ -42,10 +41,10 @@ import_Wdata=function(path,site=path, min_length=NA, sample_length=FALSE){
             dplyr::filter(!length_provided)
           nslice=floor(nrow(Wdata_ls)*prop)
           Wdata_ls=Wdata_ls %>%
-            dplyr::slice(n=nslice) %>%
-            dplyr::select(-length_provided)
+            dplyr::slice(n=nslice)
           Wdata=dplyr::bind_rows(Wdata_li,Wdata_ls) %>%
-            dplyr::arrange(Time)
+            dplyr::arrange(Time) %>%
+            dplyr::select(-length_provided)
       }
   }
   return(Wdata)

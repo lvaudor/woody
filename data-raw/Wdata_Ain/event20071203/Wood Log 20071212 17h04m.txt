@@ -1,0 +1,7 @@
+Floating wood at Chazey for flood on 20071203
+Date Time Length(m) Diameter(m) Position(m) Angle(rad) Velocity(m/s) Rotation(rad/s) Roots(1/0) Branches(1/0) Grouped(1/0) PartSubmerged(1/0)
+12-Dec-2007  16:06:28 0.77  0.12  67.26  0.69  6.22 -2.18  0  0  0  0 
+12-Dec-2007  16:07:22 0.53  0.08  75.01  1.41  4.04 -1.74  0  0  0  0 
+12-Dec-2007  16:08:12 0.72  0.09  75.30  1.21  5.75 -2.94  0  0  0  0 
+12-Dec-2007  16:08:18 0.50  0.05  75.00  1.15  5.99 -3.02  0  0  0  0 
+12-Dec-2007  16:10:46 1.16  0.14  73.78  0.53  6.30 -3.06  0  0  0  0 
