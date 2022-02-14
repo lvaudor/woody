@@ -2,8 +2,8 @@ pandoc: 2.14.0.3
 pkgdown: 2.0.2
 pkgdown_sha: ~
 articles:
+  1._woody_model_logflux: 1._woody_model_logflux.html
+  2._woody_calculate_flux: 2._woody_calculate_flux.html
   woody: woody.html
-  woody_calculate_flux: woody_calculate_flux.html
-  woody_model_logflux: woody_model_logflux.html
-last_built: 2022-02-14T08:31Z
+last_built: 2022-02-14T11:38Z
 

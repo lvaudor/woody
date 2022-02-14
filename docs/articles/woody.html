@@ -53,10 +53,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/woody_calculate_flux.html">1. woody: calculate flux</a>
+      <a href="../articles/1._woody_model_logflux.html">1. woody: model logflux</a>
     </li>
     <li>
-      <a href="../articles/woody_model_logflux.html">2. woody: model logflux</a>
+      <a href="../articles/2._woody_calculate_flux.html">2. woody: calculate flux</a>
     </li>
   </ul>
 </li>
@@ -89,8 +89,8 @@
 <div class="section level2">
 <h2 id="global-process">Global process<a class="anchor" aria-label="anchor" href="#global-process"></a>
 </h2>
-<div id="htmlwidget-8432ce54e81fa3b7ac0f" style="width:700px;height:960px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8432ce54e81fa3b7ac0f">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  wpath [fillcolor = burlywood1]\n  qpath  [fillcolor = cadetblue1]\n  W [fillcolor = burlywood1]\n  Q  [fillcolor = cadetblue1]\n  Wc [fillcolor = darkkhaki]\n  Qc  [fillcolor = cadetblue1]\n  Q [fillcolor = cadetblue1]\n  Wwt [fillcolor = darkkhaki]\n  Wwt_test [fillcolor = darkkhaki]\n  myrf [fillcolor = gold]\n  Wp [fillcolor = darkolivegreen2]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"import_Wdata()\"\n  \"import_Qdata()\"\n  \"complete_Qdata()\" \n  \"complete_Wdata_with_Qdata()\"\n  \"Wdata_as_waiting_times()\"\n  \"run_rf()\"\n  \"predict_rf()\"\n\n  # several \"edge\" statements\n  wpath -> \"import_Wdata()\" [arrowhead = none]\n  \"import_Wdata()\"-> W \n  qpath -> \"import_Qdata()\" [arrowhead = none]\n  \"import_Qdata()\"-> Q \n  Q -> \"complete_Qdata()\" [arrowhead=none]\n  \"complete_Qdata()\" -> Qc \n  W -> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  Qc-> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  \"complete_Wdata_with_Qdata()\" -> Wc\n  Wc -> \"Wdata_as_waiting_times()\" [arrowhead=none]\n  \"Wdata_as_waiting_times()\" -> Wwt\n  Wwt -> \"run_rf()\" [arrowhead = none]\n  \"run_rf()\" -> myrf \n  myrf -> \"predict_rf()\" [arrowhead = none]\n  \"Wwt_test\" -> \"predict_rf()\" [arrowhead = none]\n  \"predict_rf()\" -> \"Wp\" \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-5d957ed694f8a1010ec3" style="width:700px;height:960px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5d957ed694f8a1010ec3">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  wpath [fillcolor = burlywood1]\n  qpath  [fillcolor = cadetblue1]\n  W [fillcolor = burlywood1]\n  Q  [fillcolor = cadetblue1]\n  Wc [fillcolor = darkkhaki]\n  Qc  [fillcolor = cadetblue1]\n  Q [fillcolor = cadetblue1]\n  Wwt [fillcolor = darkkhaki]\n  Wwt_test [fillcolor = darkkhaki]\n  myrf [fillcolor = gold]\n  Wp [fillcolor = darkolivegreen2]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"import_Wdata()\"\n  \"import_Qdata()\"\n  \"complete_Qdata()\" \n  \"complete_Wdata_with_Qdata()\"\n  \"Wdata_as_waiting_times()\"\n  \"run_rf()\"\n  \"predict_rf()\"\n\n  # several \"edge\" statements\n  wpath -> \"import_Wdata()\" [arrowhead = none]\n  \"import_Wdata()\"-> W \n  qpath -> \"import_Qdata()\" [arrowhead = none]\n  \"import_Qdata()\"-> Q \n  Q -> \"complete_Qdata()\" [arrowhead=none]\n  \"complete_Qdata()\" -> Qc \n  W -> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  Qc-> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  \"complete_Wdata_with_Qdata()\" -> Wc\n  Wc -> \"Wdata_as_waiting_times()\" [arrowhead=none]\n  \"Wdata_as_waiting_times()\" -> Wwt\n  Wwt -> \"run_rf()\" [arrowhead = none]\n  \"run_rf()\" -> myrf \n  myrf -> \"predict_rf()\" [arrowhead = none]\n  \"Wwt_test\" -> \"predict_rf()\" [arrowhead = none]\n  \"predict_rf()\" -> \"Wp\" \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div class="section level2">
 <h2 id="prepare-data">Prepare data<a class="anchor" aria-label="anchor" href="#prepare-data"></a>
@@ -98,8 +98,8 @@
 <div class="section level3">
 <h3 id="get-w-data-about-wood-occurrences">Get <code>W</code> data about wood occurrences<a class="anchor" aria-label="anchor" href="#get-w-data-about-wood-occurrences"></a>
 </h3>
-<div id="htmlwidget-8e756059aea2fded48d8" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8e756059aea2fded48d8">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  wpath [fillcolor = burlywood]\n  W [fillcolor = burlywood]\n\n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"import_Wdata()\"\n \n\n  # several \"edge\" statements\n  wpath -> \"import_Wdata()\" [arrowhead = none]\n  \"import_Wdata()\"-> W \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div id="htmlwidget-a1e96cfd91e464dd654b" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a1e96cfd91e464dd654b">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  wpath [fillcolor = burlywood]\n  W [fillcolor = burlywood]\n\n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"import_Wdata()\"\n \n\n  # several \"edge\" statements\n  wpath -> \"import_Wdata()\" [arrowhead = none]\n  \"import_Wdata()\"-> W \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">wpath</span><span class="op">=</span><span class="st">"../data-raw/mem_data/woody_data_train/"</span>
 <span class="va">mystation</span><span class="op">=</span><span class="st">"V2942010"</span>
 <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">wpath</span><span class="op">)</span></code></pre></div>
@@ -125,8 +125,8 @@
 <div class="section level3">
 <h3 id="get-q-data-about-discharge">Get <code>Q</code> data about discharge<a class="anchor" aria-label="anchor" href="#get-q-data-about-discharge"></a>
 </h3>
-<div id="htmlwidget-0f5b86e60f473b9eef36" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0f5b86e60f473b9eef36">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  qpath  [fillcolor = cadetblue1]\n  Q  [fillcolor = cadetblue1]\n\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"import_Qdata()\"\n  \n  qpath -> \"import_Qdata()\" [arrowhead = none]\n  \"import_Qdata()\"-> Q \n\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Import <code>Q</code>:</p>
+<div id="htmlwidget-12bf6b4e8dbe3d5de771" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-12bf6b4e8dbe3d5de771">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  qpath  [fillcolor = cadetblue1]\n  Q  [fillcolor = cadetblue1]\n\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"import_Qdata()\"\n  \n  qpath -> \"import_Qdata()\" [arrowhead = none]\n  \"import_Qdata()\"-> Q \n\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Import <code>Q</code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">qpath</span><span class="op">=</span><span class="st">"../data-raw/Qdata/Qdatc_Ain.csv"</span>
 <span class="va">Q</span><span class="op">=</span><span class="fu"><a href="../reference/import_Qdata.html">import_Qdata</a></span><span class="op">(</span>path<span class="op">=</span><span class="va">qpath</span>, site<span class="op">=</span><span class="st">"Ain"</span><span class="op">)</span></code></pre></div>
@@ -191,8 +191,8 @@
 <div class="section level3">
 <h3 id="complete-q-into-qc">Complete <code>Q</code> into <code>Qc</code><a class="anchor" aria-label="anchor" href="#complete-q-into-qc"></a>
 </h3>
-<div id="htmlwidget-d272cae3acf5ff9ba118" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-d272cae3acf5ff9ba118">{"x":{"diagram":"\ndigraph boxes_and_circles {\n   graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Qc  [fillcolor = cadetblue1]\n  Q [fillcolor = cadetblue1]\n\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"complete_Qdata()\" \n\n\n  # several \"edge\" statements\n  Q -> \"complete_Qdata()\" [arrowhead=none]\n  \"complete_Qdata()\" -> Qc \n\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Now <strong>complete <code>Q</code></strong> with <strong>variables T_Q and S</strong></p>
+<div id="htmlwidget-e46942cc23eb94887e82" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e46942cc23eb94887e82">{"x":{"diagram":"\ndigraph boxes_and_circles {\n   graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Qc  [fillcolor = cadetblue1]\n  Q [fillcolor = cadetblue1]\n\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"complete_Qdata()\" \n\n\n  # several \"edge\" statements\n  Q -> \"complete_Qdata()\" [arrowhead=none]\n  \"complete_Qdata()\" -> Qc \n\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Now <strong>complete <code>Q</code></strong> with <strong>variables T_Q and S</strong></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">result_file</span><span class="op">=</span><span class="st">"../data-raw/results/Q.RDS"</span>
 <span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">result_file</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
@@ -272,8 +272,8 @@
 <div class="section level3">
 <h3 id="complete-w-with-q-and-get-wc">Complete <code>W</code> with <code>Q</code> and get <code>Wc</code><a class="anchor" aria-label="anchor" href="#complete-w-with-q-and-get-wc"></a>
 </h3>
-<div id="htmlwidget-46e6acfec43ca16b7ee5" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-46e6acfec43ca16b7ee5">{"x":{"diagram":"\ndigraph boxes_and_circles {\n graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  W [fillcolor = burlywood]\n  Wc [fillcolor = darkkhaki]\n  Qc  [fillcolor = cadetblue1]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"complete_Wdata_with_Qdata()\"\n\n\n  # several \"edge\" statements\n  W -> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  Qc-> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  \"complete_Wdata_with_Qdata()\" -> Wc\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Complete <code>W</code> with discharge data (interpolating <code>Q</code>)</p>
+<div id="htmlwidget-f8056eebf2b9a2f84311" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f8056eebf2b9a2f84311">{"x":{"diagram":"\ndigraph boxes_and_circles {\n graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  W [fillcolor = burlywood]\n  Wc [fillcolor = darkkhaki]\n  Qc  [fillcolor = cadetblue1]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"complete_Wdata_with_Qdata()\"\n\n\n  # several \"edge\" statements\n  W -> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  Qc-> \"complete_Wdata_with_Qdata()\" [arrowhead=none]\n  \"complete_Wdata_with_Qdata()\" -> Wc\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Complete <code>W</code> with discharge data (interpolating <code>Q</code>)</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Wc</span><span class="op">=</span><span class="fu"><a href="../reference/complete_Wdata_with_Qdata.html">complete_Wdata_with_Qdata</a></span><span class="op">(</span>Wdata<span class="op">=</span><span class="va">W</span>,
                              Qdata<span class="op">=</span><span class="va">Qc</span><span class="op">)</span></code></pre></div>
@@ -382,8 +382,8 @@
 <div class="section level3">
 <h3 id="transform-wc-into-wwt">Transform <code>Wc</code> into <code>Wwt</code><a class="anchor" aria-label="anchor" href="#transform-wc-into-wwt"></a>
 </h3>
-<div id="htmlwidget-efc483a998f60e0d182b" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-efc483a998f60e0d182b">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Wc [fillcolor = darkkhaki]\n  Wwt [fillcolor = darkkhaki]\n \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"Wdata_as_waiting_times()\"\n\n  # several \"edge\" statements\n \n  Wc -> \"Wdata_as_waiting_times()\" [arrowhead=none]\n  \"Wdata_as_waiting_times()\" -> Wwt\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Then calculate <code>Wwt</code>, where 1 row= 1 waiting time between two wood occurrences.</p>
+<div id="htmlwidget-74e911b5dcb6db4eba4a" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-74e911b5dcb6db4eba4a">{"x":{"diagram":"\ndigraph boxes_and_circles {\n  graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Wc [fillcolor = darkkhaki]\n  Wwt [fillcolor = darkkhaki]\n \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"Wdata_as_waiting_times()\"\n\n  # several \"edge\" statements\n \n  Wc -> \"Wdata_as_waiting_times()\" [arrowhead=none]\n  \"Wdata_as_waiting_times()\" -> Wwt\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>Then calculate <code>Wwt</code>, where 1 row= 1 waiting time between two wood occurrences.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Wwt</span><span class="op">=</span><span class="fu"><a href="../reference/Wdata_as_waiting_times.html">Wdata_as_waiting_times</a></span><span class="op">(</span><span class="va">Wc</span><span class="op">)</span></code></pre></div>
 <p>The first lines of <code>Wwt</code> look like this:</p>
@@ -532,8 +532,8 @@
 <div class="section level2">
 <h2 id="run-random-forest">Run random forest<a class="anchor" aria-label="anchor" href="#run-random-forest"></a>
 </h2>
-<div id="htmlwidget-9f29e780c35b2e8bbecf" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9f29e780c35b2e8bbecf">{"x":{"diagram":"\ndigraph boxes_and_circles {\n   graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Wwt [fillcolor = darkkhaki]\n  myrf [fillcolor = gold]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n\n  \"run_rf()\"\n\n  # several \"edge\" statements\n  Wwt -> \"run_rf()\" [arrowhead = none]\n  \"run_rf()\" -> myrf \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div id="htmlwidget-86ade9399418f956bfa0" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-86ade9399418f956bfa0">{"x":{"diagram":"\ndigraph boxes_and_circles {\n   graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Wwt [fillcolor = darkkhaki]\n  myrf [fillcolor = gold]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n\n  \"run_rf()\"\n\n  # several \"edge\" statements\n  Wwt -> \"run_rf()\" [arrowhead = none]\n  \"run_rf()\" -> myrf \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">myrf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rf.html">run_rf</a></span><span class="op">(</span><span class="va">Wwt</span><span class="op">)</span>
 <span class="va">myrf</span></code></pre></div>
 <pre><code><span class="co">## </span>
@@ -543,14 +543,14 @@
 <span class="co">##                      Number of trees: 1000</span>
 <span class="co">## No. of variables tried at each split: 1</span>
 <span class="co">## </span>
-<span class="co">##           Mean of squared residuals: 1.261628</span>
-<span class="co">##                     % Var explained: -15.34</span></code></pre>
+<span class="co">##           Mean of squared residuals: 1.265999</span>
+<span class="co">##                     % Var explained: -15.74</span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="get-predictions-and-assess-random-forest-performance">Get predictions and assess random forest performance<a class="anchor" aria-label="anchor" href="#get-predictions-and-assess-random-forest-performance"></a>
 </h2>
-<div id="htmlwidget-4507070533f9a13f5b75" style="width:700px;height:288px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-4507070533f9a13f5b75">{"x":{"diagram":"\ndigraph boxes_and_circles {\n   graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Wwt_test [fillcolor = darkkhaki]\n  myrf [fillcolor = gold]\n  Wp [fillcolor = darkolivegreen2]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"predict_rf()\"\n\n  # several \"edge\" statements\n \n  Wwt_test -> \"predict_rf()\" [arrowhead = none] \n  myrf -> \"predict_rf()\" [arrowhead = none]\n  \"predict_rf()\" -> \"Wp\" \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="section level3">
+<div id="htmlwidget-7323d6346a1fe0f6426e" style="width:700px;height:288px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7323d6346a1fe0f6426e">{"x":{"diagram":"\ndigraph boxes_and_circles {\n   graph [overlap = true, fontsize = 10]\n  node [shape = box, style= filled]\n  Wwt_test [fillcolor = darkkhaki]\n  myrf [fillcolor = gold]\n  Wp [fillcolor = darkolivegreen2]\n  \n  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]\n  \"predict_rf()\"\n\n  # several \"edge\" statements\n \n  Wwt_test -> \"predict_rf()\" [arrowhead = none] \n  myrf -> \"predict_rf()\" [arrowhead = none]\n  \"predict_rf()\" -> \"Wp\" \n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><div class="section level3">
 <h3 id="on-the-training-dataset-itself">On the training dataset itself<a class="anchor" aria-label="anchor" href="#on-the-training-dataset-itself"></a>
 </h3>
 <p>Predict on training data itself</p>
@@ -563,7 +563,7 @@
 <pre><code><span class="co">## <span style="color: #949494;"># A tibble: 1 × 3</span></span>
 <span class="co">##     SCR   SCT    R2</span>
 <span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="co">## <span style="color: #BCBCBC;">1</span>  795. <span style="text-decoration: underline;">2</span>273. 0.650</span></code></pre>
+<span class="co">## <span style="color: #BCBCBC;">1</span>  798. <span style="text-decoration: underline;">2</span>273. 0.649</span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="on-another-dataset">On another dataset<a class="anchor" aria-label="anchor" href="#on-another-dataset"></a>
@@ -580,7 +580,7 @@
 <pre><code><span class="co">## <span style="color: #949494;"># A tibble: 1 × 3</span></span>
 <span class="co">##     SCR   SCT    R2</span>
 <span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="co">## <span style="color: #BCBCBC;">1</span>  482.  154. -<span style="color: #BB0000;">2.12</span></span></code></pre>
+<span class="co">## <span style="color: #BCBCBC;">1</span>  500.  154. -<span style="color: #BB0000;">2.24</span></span></code></pre>
 </div>
 </div>
   </div>
