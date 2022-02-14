@@ -1,12 +1,12 @@
 ---
-title: "2. woody: model logflux"
+title: "1. woody: model logflux"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: 
   rmarkdown::html_vignette:
     toc: true           
     number_sections: true   
 vignette: >
-  %\VignetteIndexEntry{woody: model logflux}
+  %\VignetteIndexEntry{1. woody: model logflux}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -26,8 +26,7 @@ library(DiagrammeR)
 # Global process
 
 ```{r diagramme, echo=FALSE, fig.height=10}
-grViz("
-digraph boxes_and_circles {
+grViz("digraph boxes_and_circles {
   graph [overlap = true, fontsize = 10]
   node [shape = box, style= filled]
   wpath [fillcolor = burlywood1]
@@ -68,8 +67,7 @@ digraph boxes_and_circles {
   myrf -> 'predict_rf()' [arrowhead = none]
   'Wwt_test' -> 'predict_rf()' [arrowhead = none]
   'predict_rf()' -> 'Wp' 
-}
-")
+}")
 ```
 
 ## For several sites 
