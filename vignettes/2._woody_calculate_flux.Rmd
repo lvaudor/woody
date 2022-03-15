@@ -139,6 +139,7 @@ tib_WpQc=readRDS("../data-raw/results/tib_WpQc.RDS")
 Wdata_pred=tib_WpQc %>% 
   select(Wdata) %>% 
   tidyr::unnest(Wdata, .name_repair="minimal")
+
 p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y-Y_pred))+
   geom_point(alpha=0.05)+
   facet_grid(cols=vars(site),
@@ -148,39 +149,57 @@ p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y-Y_pred))+
 plot(p)
 ```
 
-The observed value $Y$ is distributed around predicted value $Y_{pred}$, in an **approximately Gaussian distribution with standard deviation $\sigma$**, hence we can hypothesize that
 
-$$Y \sim \mathcal{N}(\mu,\sigma) $$
 
-$$E(Y)=E(Y_{pred})=\mu$$
+The observed value $Y$ is distributed around predicted value $\mu=Y_{pred}$, in an **approximately Gaussian distribution**:
 
-$\sigma$, as the **residual standard deviation**, corresponds to a measure of error of the model predicting $Y=log(N)$.
+$$Y=log(3600/W)  \sim \mathcal{N}(\mu,\sigma) $$
+Thus, we have $log(W)=log(3600)-Y$ hence:
 
-Here is an estimate of $\sigma$ for both sites:
+$$log(W) \sim \mathcal{N}(log(3600)-\mu,\sigma) $$
+The estimate of $\mu$ is given by
 
-```{r calc_sigma}
-Wdata_pred %>% 
-  group_by(site) %>% 
-  mutate(residuals=Y_pred-Y) %>% 
-  summarise(sigma=sd(residuals))
+$$\mu=Y_{pred}$$
+Let us now estimate $\sigma$.
+
+## Estimate of $\sigma$
+
+$\sigma$, as the **residual standard deviation**, corresponds to a measure of error of the model predicting $Y$. It actually depends on $\mu$, as the error tends to be less important when predicted log-flux is important:
+
+```{r est_sigma_as_f_mu}
+data_sigma=Wdata_pred %>% 
+  ungroup() %>% 
+  mutate(Ycat=cut(Y_pred,quantile(Y_pred,seq(0,1,by=0.1)))) %>% 
+  group_by(Ycat) %>% 
+  summarise(mu=mean(Y_pred),
+            sigma=sd(Y_pred-Y)) 
+
+ggplot(data_sigma, aes(x=mu,y=sigma))+
+  geom_point()+
+  geom_smooth(method="lm")
+
+lm_sigma=lm(sigma~mu, data=data_sigma)
+gamma=lm_sigma$coefficients[[2]]
+delta=lm_sigma$coefficients[[1]]
+sigma_coeffs=c(gamma,delta)
 ```
 
 
-For now, we will estimate roughly that $\sigma=1.5$ for both sites.
+We will hence consider that
 
-On the log scale, $E(Y)=E(Y_{pred})$, but going back to a **natural (not logged) scale for fluxes**:
+$$\sigma=\gamma\mu+\delta $$
 
-$$E(N)=E(e^Y)=e^{E(Y)+\frac{\sigma^2}{2}}$$
+## Expected value of $N$
 
-Hence $E(N)>e^{E(Y)}$: the expected value of $N$, $E(N)$,  is higher than the exponential of $E(Y)$.
+If $log(Z) \sim \mathcal{N}(\mu',\sigma)$ then $E(Z)=e^{\mu'+\sigma²/2)}$
 
-## Empirical explanation of $E(N_{pred})>exp(E(Y_{pred}))$
+So that 
 
-This can also be understood, in a **more empirical way**, like this:
+$$ E(W)=e^{log(3600)-\mu+\sigma²/2}=3600e^{-\mu+\sigma²/2} $$
 
-The error in $log(N)$ is symmetrical, which means that $N$ can equally be **a bit lower** or **a lot higher** than predicted (on a natural scale). Hence the mean of values on this natural scale is higher that just the exponential of the mean on the log scale.
+and 
 
-In the following section, we will hence use this **estimate of $\sigma$ to convert $Y_{pred}$ estimates to $N_{pred}$ estimates**.
+$$ E(N)=e^{\mu-\sigma²/2} $$
 
 # Summarise `Qdata` hourly and calculate $N_{pred}$ and $N_{obs}$
 
@@ -197,12 +216,16 @@ tib_WQh=tib_WQc %>%
                           ~interp_Qdata(.x, timescale="hours")))
 ```
 
-## Calculate hourly $Y_pred$
+## Calculate hourly $Y_{pred}$
 
 ```{r tib_WQp}
+correction_covariate_shift=readRDS("../data-raw/correction_covariate_shift.RDS")
+
+
 tib_WQp=tib_WQh %>%
   mutate(Qdata=purrr::map(.x=Qdata %>% na.omit(),
-                          ~predict_rf(newdata=.x,obj_rf=myrf)))
+                          ~predict_rf(newdata=.x,obj_rf=myrf,
+                                      correction=correction_covariate_shift)))
 
 ```
 
@@ -212,7 +235,7 @@ tib_WQp=tib_WQh %>%
 tib_WQn=tib_WQp %>%
   mutate(apath=paste0("../data-raw/annot_times_",site,".csv")) %>%
   mutate(Qdata=purrr::map(.x=Qdata,
-                          ~summarise_Qdata(Qdata=.x,sigma=1.5)))
+                          ~summarise_Qdata(Qdata=.x,sigma_coeffs=sigma_coeffs)))
 ```
 
 ## Get hourly $N_{obs}$ and $N_{obse}$ from `Wdata`
@@ -266,6 +289,7 @@ Ndata=tib_WnQnN %>%
   tidyr::unnest(Ndata)
 ```
 
+
 ## Model performance
 
 ```{r R2}
@@ -277,15 +301,40 @@ R2
 
 
 
-## Plot of $N_{pred}$ and $N_{obs}$
+## Time plot of $N_{pred}$ and $N_{obs}$
 
+### On a log-scale:
 
-```{r plot_N, fig.height=8, fig.width=8}
+```{r plot_N_log, fig.height=16, fig.width=8}
 Ndataplot=Ndata %>% 
   tidyr::pivot_longer(cols=c(N_pred,N_obse), names_to="type") %>%
   filter(!is.na(event))
 ggplot(Ndataplot, aes(x=Time,y=value))+
   geom_path(aes(col=type))+
   geom_point(aes(col=type))+
-  facet_wrap(site~event, scales="free", ncol=2)
+  facet_wrap(site~event, scales="free_x", ncol=1)+
+  scale_y_log10()
 ```
+
+### On a natural scale:
+
+```{r plot_N_nat, fig.height=16, fig.width=8}
+Ndataplot=Ndata %>% 
+  tidyr::pivot_longer(cols=c(N_pred,N_obse), names_to="type") %>%
+  filter(!is.na(event))
+ggplot(Ndataplot, aes(x=Time,y=value))+
+  geom_path(aes(col=type))+
+  geom_point(aes(col=type))+
+  facet_wrap(site~event, scales="free_x", ncol=1)
+```
+
+## Predicted vs observed (hourly scale)
+
+```{r plot_predicted_observed}
+ggplot(Ndata %>% filter(!is.na(event)), aes(x=N_obse,y=N_pred, col=event))+
+  geom_point()+
+  geom_abline(vintercept=0,slope=1,col="red")+
+  facet_wrap(~site)+
+  scale_x_log10()+scale_y_log10()
+```
+

@@ -135,8 +135,8 @@ Prepare data **describing the two stations**:
 tib_sites=tibble::tibble(site=c("Ain","Allier"),
                          q1.5=c(840,460),
                          station=c("V294201001 ","K340081001")) %>% 
-  mutate(wpath=paste0("../data-raw/wood_data_",site),
-         qpath=paste0("../data-raw/Qdata/Qdatc_",site,".csv"))
+  mutate(wpath=paste0("../data-raw/Wdata_",site),
+         qpath=paste0("../data-raw/qtvar/q",site,".csv"))
 tib_sites
 ```
 
@@ -322,13 +322,68 @@ R2
 ```{r plot_pred, fig.width=6}
 Wdata_pred=tib_WpQc %>% 
   select(Wdata) %>% 
-  tidyr::unnest(Wdata, .name_repair="minimal")
-p=ggplot(Wdata_pred,aes(x=Y,y=Y_pred))+
+  tidyr::unnest(Wdata, .name_repair="minimal") %>% 
+  ungroup() %>% 
+  mutate(Ycat=cut(Y,quantile(Y,seq(0,1,by=0.1),include.lowest=TRUE)))
+
+p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y))+
   geom_point(alpha=0.05)+
   geom_abline(intercept=0,slope=1, col="red")+
   facet_grid(cols=vars(site),
              labeller = labeller(.rows = label_both,
-                                 .cols = label_both))
+                                 .cols = label_both))+
+  geom_smooth(method="lm")
 plot(p)
 ```
 
+## Correction of prediction bias linked to covariate shift
+
+Due to covariate shift, there is a tendency to overestimate low values of Y and underestimate high values of Y (trend in blue, theoretical Y=X line in red).
+
+
+$$Y=\alpha*Y_{pred}+\beta$$
+
+We will apply a simple linear correction of predictions to account for this in the predict_rf function (arguments)
+
+```{r}
+lm_mod=lm(Y~Y_pred, data=Wdata_pred)
+alpha=lm_mod$coefficients[[2]]
+beta=lm_mod$coefficients[[1]]
+saveRDS(c(alpha,beta),"../data-raw/correction_covariate_shift.RDS")
+```
+ 
+So we correct $Y_{pred}$ values accordingly
+
+```{r}
+tib_WpQc=tib_WwtQc %>% 
+  mutate(Wdata=purrr::map(.x=Wdata,
+                          ~predict_rf(newdata=.x,
+                                      obj_rf=myrf,
+                                      correction=c(alpha,beta))))
+
+saveRDS(tib_WpQc,"../data-raw/results/tib_WpQc.RDS")
+```
+
+```{r}
+R2=tib_WpQc %>% select(site,Wdata) %>% 
+  mutate(R2=purrr::map_df(Wdata,calc_rf_R2)) %>% 
+  unnest(R2)
+R2
+```
+
+```{r plot_pred_corr, fig.width=6}
+Wdata_pred=tib_WpQc %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata, .name_repair="minimal") %>% 
+  ungroup() %>% 
+  mutate(Ycat=cut(Y,quantile(Y,seq(0,1,by=0.1),include.lowest=TRUE)))
+
+p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y))+
+  geom_point(alpha=0.05)+
+  geom_abline(intercept=0,slope=1, col="red")+
+  facet_grid(cols=vars(site),
+             labeller = labeller(.rows = label_both,
+                                 .cols = label_both))+
+  geom_smooth(method="lm")
+plot(p)
+```
