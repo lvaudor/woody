@@ -1,7 +1,7 @@
 #' summarise Qdata to a period
 #' @param data data to summarise
 #' @param Adata the annotation times (if available)
-#' @param sigma the residual error in the estimates of Ypred
+#' @param sigma_coeffs the coefficients providing sigma (residual standard deviation) with sigma=coef[1]*mu +coef[2]
 #' @export
 #' @return summarised data
 summarise_Qdata=function(Qdata,sigma_coeffs){

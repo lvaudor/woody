@@ -1,0 +1,269 @@
+## ----attach_woody, warning=FALSE, message=FALSE-------------------------------
+knitr::opts_chunk$set(warning=FALSE,message=FALSE)
+library(woody)
+library(tidyverse)
+library(DiagrammeR)
+
+## ----diagramme, echo=FALSE, fig.height=10-------------------------------------
+grViz("digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  node [shape = box, style= filled]
+  wpath [fillcolor = burlywood1]
+  qpath  [fillcolor = cadetblue1]
+  W [fillcolor = burlywood1]
+  Q  [fillcolor = cadetblue1]
+  Wc [fillcolor = darkkhaki]
+  Qc  [fillcolor = cadetblue1]
+  Q [fillcolor = cadetblue1]
+  Wwt [fillcolor = darkkhaki]
+  Wwt_test [fillcolor = darkkhaki]
+  myrf [fillcolor = gold]
+  Wp [fillcolor = darkolivegreen2]
+  
+  node [shape = ellipse,fixedsize = false,color = grey, style= filled, fillcolor=grey90]
+  'import_Wdata()'
+  'import_Qdata()'
+  'complete_Qdata()' 
+  'complete_Wdata_with_Qdata()'
+  'Wdata_as_waiting_times()'
+  'run_rf()'
+  'predict_rf()'
+
+  # several 'edge' statements
+  wpath -> 'import_Wdata()' [arrowhead = none]
+  'import_Wdata()'-> W 
+  qpath -> 'import_Qdata()' [arrowhead = none]
+  'import_Qdata()'-> Q 
+  Q -> 'complete_Qdata()' [arrowhead=none]
+  'complete_Qdata()' -> Qc 
+  W -> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  Qc-> 'complete_Wdata_with_Qdata()' [arrowhead=none]
+  'complete_Wdata_with_Qdata()' -> Wc
+  Wc -> 'Wdata_as_waiting_times()' [arrowhead=none]
+  'Wdata_as_waiting_times()' -> Wwt
+  Wwt -> 'run_rf()' [arrowhead = none]
+  'run_rf()' -> myrf 
+  myrf -> 'predict_rf()' [arrowhead = none]
+  'Wwt_test' -> 'predict_rf()' [arrowhead = none]
+  'predict_rf()' -> 'Wp' 
+}")
+
+## ----diagramme0, echo=FALSE, fig.height=7, fig.path="docs/figs"---------------
+library(DiagrammeR)
+grViz("
+digraph boxes_and_circles {
+    graph [fontsize=10 compound=true overlap=true,  labeljust=r];
+    node [shape=egg fontsize=10, style=filled]
+    // all nodes related to Q
+    node [fillcolor=cadetblue1, label='Qc[1,2]']
+    'Q' [label='Q[1,2]']
+    'Qc' 'Qc5'  'Qc6' 'Qc7'
+    // all nodes related to W
+    node [fillcolor=burlywood1, label='W[1,2]']
+    'W' 'W3' 'W4'
+    // all nodes related to W+Qnode 
+    node [fillcolor = darkkhaki]
+    'Wc' [label='Wc[1,2]']
+    'Wwt' [label= 'Wwt[1,2]']
+    'Wp' [label= 'Wp[1,2]', fillcolor = darkolivegreen2]
+    
+    
+    node[shape=box]
+    myrf [fillcolor = gold, label='myrf']
+    'Wwt_out' [label='Wwt']
+    
+    // all nodes related to descriptors
+    node [shape=egg, fillcolor=ivory, label='descriptors[1,2]']
+    'descriptors'    'descriptors2'    'descriptors3' 'descriptors4'
+    
+    
+    subgraph cluster_1 {'descriptors';label='tib_sites'}
+    subgraph cluster_2 {'descriptors2' 'W'; label='tib_W'}
+    subgraph cluster_3 {'descriptors3' 'W3' 'Q' ; label='tib_WQ'}
+    subgraph cluster_4 {'descriptors4' 'W4' 'Qc'; label='tib_WQc'}
+    subgraph cluster_5 {'descriptors5' 'Wc' 'Qc5'; label='tib_WcQc'}
+    subgraph cluster_6 {'descriptors6' 'Wwt', 'Qc6'; label='tib_WwtQc'}
+    subgraph cluster_7 {'descriptors7' 'Wp', 'Qc7'; label='tib_WpQc'}
+    
+    
+    edge[color=grey]
+    'descriptors' -> 'descriptors2' -> 'descriptors3' -> 'descriptors4' -> 'descriptors5' -> 'descriptors6' ->'descriptors7'
+    'descriptors'  -> 'W' -> 'W3' -> 'W4' -> 'Wc' -> 'Wwt' 
+    'descriptors2' -> 'Q' -> 'Qc' -> 'Qc5' -> 'Qc6' -> 'Qc7'
+    'Qc' -> 'Wc'
+    'Wwt' -> 'Wwt_out' -> 'myrf'
+    'Wwt','myrf' -> 'Wp'
+ }
+")
+
+## ----tib_sites----------------------------------------------------------------
+tib_sites=tibble::tibble(site=c("Ain","Allier"),
+                         q1.5=c(840,460),
+                         station=c("V294201001 ","K340081001")) %>% 
+  mutate(wpath=paste0("../data-raw/Wdata_",site),
+         qpath=paste0("../data-raw/qtvar/q",site,".csv"))
+tib_sites
+
+## ----import_Wdata, message=FALSE, warning=FALSE-------------------------------
+result_file="../data-raw/results/tib_W.RDS"
+if(!file.exists(result_file)){
+  tib_W=tib_sites %>% 
+    group_by(vars=site,q1.5,station,wpath) %>% 
+    mutate(Wdata=purrr::map2(.x=wpath,.y=site,
+                             ~import_Wdata(path=.x,site=.y,
+                                           min_length=1,
+                                           sample_length=TRUE
+                                           ))) %>% 
+    mutate(Wdata=purrr::map(.x=Wdata,
+                            ~mutate(.x,site=factor(site,levels=tib_sites$site))))
+  saveRDS(tib_W,result_file)
+}
+tib_W=readRDS(result_file)
+
+## ----tib_W_look, echo=FALSE---------------------------------------------------
+tib_W_look=tib_W %>%
+  mutate(Wdata=purrr::map(Wdata,~paste0(nrow(.x)," rows x ",ncol(.x)," cols"))) %>%
+  unnest(cols=c(Wdata))
+knitr::kable(tib_W_look)
+
+## ----tib_W_lookinside, echo=FALSE---------------------------------------------
+knitr::kable(head(tib_W$Wdata[[1]]))
+
+## ----tib_WQ-------------------------------------------------------------------
+result_file="../data-raw/results/tib_WQ.RDS"
+if(!file.exists(result_file)){
+  tib_WQ=tib_W %>% 
+    mutate(Qdata=purrr::map(.x=qpath,.y=site,
+                            ~import_Qdata(path=.x, site=.y))) 
+  saveRDS(tib_WQ,result_file)
+}
+tib_WQ=readRDS(result_file)
+
+## ----tib_WQ_look, echo=FALSE--------------------------------------------------
+tib_WQ_look=tib_WQ %>%
+  mutate(Wdata=purrr::map(Wdata,~paste0(nrow(.x)," rows x ",ncol(.x)," cols"))) %>%
+  mutate(Qdata=purrr::map(Qdata,~paste0(nrow(.x)," rows x ",ncol(.x)," cols"))) %>% 
+  unnest(cols=c(Wdata, Qdata))
+knitr::kable(tib_WQ_look)
+
+## ---- echo=FALSE--------------------------------------------------------------
+head(tib_WQ$Qdata[[1]])
+
+## ----tib_WQc------------------------------------------------------------------
+result_file="../data-raw/results/tib_WQc.RDS"
+if(!file.exists(result_file)){
+  tib_WQc=tib_WQ %>% 
+    mutate(Qdata=purrr::map2(.x=Qdata,.y=q1.5,
+                             ~complete_Qdata(qtvar=.x, qnorm=.y)))
+  saveRDS(tib_WQc,result_file)
+}
+tib_WQc=readRDS(result_file)
+
+## ----tib_WQc_lookinside-------------------------------------------------------
+head(tib_WQc$Qdata[[1]])
+
+## ----tib_WcQc-----------------------------------------------------------------
+result_file="../data-raw/results/tib_WcQc.RDS"
+if(!file.exists(result_file)){
+  tib_WcQc=tib_WQc %>% 
+    mutate(Wdata=purrr::map2(.x=Wdata,.y=Qdata,
+                             ~complete_Wdata_with_Qdata(Wdata=.x,Qdata=.y)))
+  saveRDS(tib_WcQc,result_file)
+}
+tib_WcQc=readRDS(result_file)
+
+## ----tib_WcQc_lookinside, echo=FALSE------------------------------------------
+head(tib_WcQc$Wdata[[1]])
+
+## ----tib_Wwt------------------------------------------------------------------
+result_file="../data-raw/results/tib_WwtQc.RDS"
+if(!file.exists(result_file)){
+  tib_WwtQc=tib_WcQc %>% 
+    mutate(Wdata=purrr::map(.x=Wdata,~Wdata_as_waiting_times(.x)))
+  saveRDS(tib_WwtQc,result_file)
+}
+tib_WwtQc=readRDS(result_file)
+
+## ----tib_Wwt_lookinside, echo=FALSE-------------------------------------------
+head(tib_WwtQc$Wdata[[1]])
+
+## ----run_rf-------------------------------------------------------------------
+# get a single table for Wdata (waiting times)
+Wwt=tib_WwtQc %>%
+  ungroup() %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata)
+
+file_result="../data-raw/results/rf.RDS"
+if(!file.exists(file_result)){
+  myrf <- run_rf(Wwt,
+                 pred_vars=c("Q","S","rT_Q","site"))
+  saveRDS(myrf,file_result)
+}
+myrf=readRDS(file_result)
+
+## ----pred---------------------------------------------------------------------
+tib_WpQc=tib_WwtQc %>% 
+  mutate(Wdata=purrr::map(.x=Wdata,~predict_rf(newdata=.x,obj_rf=myrf)))
+
+saveRDS(tib_WpQc,"../data-raw/results/tib_WpQc.RDS")
+
+## ----R2_both------------------------------------------------------------------
+R2=tib_WpQc %>% select(site,Wdata) %>% 
+  mutate(R2=purrr::map_df(Wdata,calc_rf_R2)) %>% 
+  unnest(R2)
+R2
+
+## ----plot_pred, fig.width=6---------------------------------------------------
+Wdata_pred=tib_WpQc %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata, .name_repair="minimal") %>% 
+  ungroup() %>% 
+  mutate(Ycat=cut(Y,quantile(Y,seq(0,1,by=0.1),include.lowest=TRUE)))
+
+p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y))+
+  geom_point(alpha=0.05)+
+  geom_abline(intercept=0,slope=1, col="red")+
+  facet_grid(cols=vars(site),
+             labeller = labeller(.rows = label_both,
+                                 .cols = label_both))+
+  geom_smooth(method="lm")
+plot(p)
+
+## -----------------------------------------------------------------------------
+lm_mod=lm(Y~Y_pred, data=Wdata_pred)
+alpha=lm_mod$coefficients[[2]]
+beta=lm_mod$coefficients[[1]]
+saveRDS(c(alpha,beta),"../data-raw/correction_covariate_shift.RDS")
+
+## -----------------------------------------------------------------------------
+tib_WpQc=tib_WwtQc %>% 
+  mutate(Wdata=purrr::map(.x=Wdata,
+                          ~predict_rf(newdata=.x,
+                                      obj_rf=myrf,
+                                      correction=c(alpha,beta))))
+
+saveRDS(tib_WpQc,"../data-raw/results/tib_WpQc.RDS")
+
+## -----------------------------------------------------------------------------
+R2=tib_WpQc %>% select(site,Wdata) %>% 
+  mutate(R2=purrr::map_df(Wdata,calc_rf_R2)) %>% 
+  unnest(R2)
+R2
+
+## ----plot_pred_corr, fig.width=6----------------------------------------------
+Wdata_pred=tib_WpQc %>% 
+  select(Wdata) %>% 
+  tidyr::unnest(Wdata, .name_repair="minimal") %>% 
+  ungroup() %>% 
+  mutate(Ycat=cut(Y,quantile(Y,seq(0,1,by=0.1),include.lowest=TRUE)))
+
+p=ggplot(Wdata_pred,aes(x=Y_pred,y=Y))+
+  geom_point(alpha=0.05)+
+  geom_abline(intercept=0,slope=1, col="red")+
+  facet_grid(cols=vars(site),
+             labeller = labeller(.rows = label_both,
+                                 .cols = label_both))+
+  geom_smooth(method="lm")
+plot(p)
+

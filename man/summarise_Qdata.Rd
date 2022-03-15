@@ -4,10 +4,10 @@
 \alias{summarise_Qdata}
 \title{summarise Qdata to a period}
 \usage{
-summarise_Qdata(Qdata, sigma)
+summarise_Qdata(Qdata, sigma_coeffs)
 }
 \arguments{
-\item{sigma}{the residual error in the estimates of Ypred}
+\item{sigma_coeffs}{the coefficients providing sigma (residual standard deviation) with sigma=coef[1]*mu +coef[2]}
 
 \item{data}{data to summarise}
 

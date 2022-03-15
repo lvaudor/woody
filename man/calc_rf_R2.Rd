@@ -4,10 +4,12 @@
 \alias{calc_rf_R2}
 \title{calculates R2}
 \usage{
-calc_rf_R2(data)
+calc_rf_R2(data, type = "Y")
 }
 \arguments{
-\item{data}{data with variables Y and Ypred}
+\item{data}{data with variables Y and Y_pred if type="Y" or N_obse and N_pred if type="N"}
+
+\item{type}{type of variables ("Y" or "N": defaults to "Y")}
 }
 \value{
 R2

@@ -4,10 +4,12 @@
 \alias{predict_rf}
 \title{Runs model random forest object on new data}
 \usage{
-predict_rf(newdata, obj_rf)
+predict_rf(newdata, obj_rf, correction = c(1, 0))
 }
 \arguments{
 \item{obj_rf}{random forest object}
+
+\item{correction}{whether to correct covariate shift, in which case two coefficients (alpha,beta) should be provided. Defaults to (1,0) i.e. no correction.}
 
 \item{data}{data with variables Q, rT_Q, S}
 }
